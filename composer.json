@@ -1,5 +1,5 @@
 {
-    "name": "mdmsoft/yii2-admin-fkresna",
+    "name": "freddokresna/yii2-admin-fkresna",
     "description": "RBAC Auth manager for Yii2 forked ",
     "keywords": ["yii", "admin", "auth", "rbac"],
     "type": "yii2-extension",
