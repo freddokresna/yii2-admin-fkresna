@@ -9,6 +9,8 @@ use yii\helpers\Html;
 
 list(,$url) = Yii::$app->assetManager->publish('@mdm/admin/assets');
 $this->registerCssFile($url.'/main.css');
+$this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css');
+
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -19,6 +21,7 @@ $this->registerCssFile($url.'/main.css');
         <?= Html::csrfMetaTags() ?>
         <title><?= Html::encode($this->title) ?></title>
         <?php $this->head() ?>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"> 
     </head>
     <body>
         <?php $this->beginBody() ?>
