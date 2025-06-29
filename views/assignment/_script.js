@@ -1,4 +1,5 @@
-$('i.glyphicon-refresh-animate').hide();
+$('i.spinner-icon').hide();
+
 function updateItems(r) {
     _opts.items.available = r.available;
     _opts.items.assigned = r.assigned;
@@ -12,15 +13,16 @@ $('.btn-assign').click(function () {
     var items = $('select.list[data-target="' + target + '"]').val();
 
     if (items && items.length) {
-        $this.children('i.glyphicon-refresh-animate').show();
+        $this.find('i.spinner-icon').show();
         $.post($this.attr('href'), {items: items}, function (r) {
             updateItems(r);
         }).always(function () {
-            $this.children('i.glyphicon-refresh-animate').hide();
+            $this.find('i.spinner-icon').hide();
         });
     }
     return false;
 });
+
 
 $('.search[data-target]').keyup(function () {
     search($(this).data('target'));

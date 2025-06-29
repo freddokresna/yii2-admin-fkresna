@@ -1,4 +1,6 @@
-$('i.glyphicon-refresh-animate').hide();
+// Sembunyikan semua ikon spinner
+$('i.spinner-icon').hide();
+
 function updateRoutes(r) {
     _opts.routes.available = r.available;
     _opts.routes.assigned = r.assigned;
@@ -6,47 +8,56 @@ function updateRoutes(r) {
     search('assigned');
 }
 
+// Tombol untuk menambahkan route baru
 $('#btn-new').click(function () {
     var $this = $(this);
+    var $spinner = $this.find('.spinner-icon');
     var route = $('#inp-route').val().trim();
-    if (route != '') {
-        $this.children('i.glyphicon-refresh-animate').show();
+
+    if (route !== '') {
+        $spinner.show();
         $.post($this.attr('href'), {route: route}, function (r) {
             $('#inp-route').val('').focus();
             updateRoutes(r);
         }).always(function () {
-            $this.children('i.glyphicon-refresh-animate').hide();
+            $spinner.hide();
         });
     }
     return false;
 });
 
+// Tombol untuk assign route
 $('.btn-assign').click(function () {
     var $this = $(this);
+    var $spinner = $this.find('.spinner-icon');
     var target = $this.data('target');
     var routes = $('select.list[data-target="' + target + '"]').val();
 
     if (routes && routes.length) {
-        $this.children('i.glyphicon-refresh-animate').show();
+        $spinner.show();
         $.post($this.attr('href'), {routes: routes}, function (r) {
             updateRoutes(r);
         }).always(function () {
-            $this.children('i.glyphicon-refresh-animate').hide();
+            $spinner.hide();
         });
     }
     return false;
 });
 
+// Tombol refresh route
 $('#btn-refresh').click(function () {
-    var $icon = $(this).children('span.glyphicon');
-    $icon.addClass('glyphicon-refresh-animate');
+    var $icon = $(this).find('.spinner-icon');
+    $icon.addClass('spin-animation').show();
+
     $.post($(this).attr('href'), function (r) {
         updateRoutes(r);
     }).always(function () {
-        $icon.removeClass('glyphicon-refresh-animate');
+        $icon.removeClass('spin-animation').hide();
     });
+
     return false;
 });
+
 
 $('.search[data-target]').keyup(function () {
     search($(this).data('target'));

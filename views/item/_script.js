@@ -1,10 +1,12 @@
-$('i.glyphicon-refresh-animate').hide();
+$('i.spinner-icon').hide();
+
 function updateItems(r) {
     _opts.items.available = r.available;
     _opts.items.assigned = r.assigned;
     search('available');
     search('assigned');
 }
+
 function updateUsers(r) {
     _opts.users = r;
     listUsers();
@@ -27,17 +29,20 @@ $('.btn-assign').click(function () {
     var $this = $(this);
     var target = $this.data('target');
     var items = $('select.list[data-target="' + target + '"]').val();
+    var $spinner = $this.find('i.spinner-icon');
 
     if (items && items.length) {
-        $this.children('i.glyphicon-refresh-animate').show();
-        $.post($this.attr('href'), {items: items}, function (r) {
+        $spinner.show();
+        $.post($this.attr('href'), { items: items }, function (r) {
             updateItems(r);
         }).always(function () {
-            $this.children('i.glyphicon-refresh-animate').hide();
+            $spinner.hide();
         });
     }
+
     return false;
 });
+
 
 $('.search[data-target]').keyup(function () {
     search($(this).data('target'));

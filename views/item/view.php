@@ -29,7 +29,8 @@ $opts = Json::htmlEncode([
     ]);
 $this->registerJs("var _opts = {$opts};");
 $this->registerJs($this->render('_script.js'));
-$animateIcon = ' <i class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></i>';
+$animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display: none;"></i>';
+
 ?>
 <div class="auth-item-view">
     <h1><?= Html::encode($this->title); ?></h1>
