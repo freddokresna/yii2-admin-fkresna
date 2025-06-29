@@ -16,3 +16,12 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+/* Tambahkan ini di CSS */
+.spin-animation {
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

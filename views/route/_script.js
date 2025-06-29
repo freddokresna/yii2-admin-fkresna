@@ -47,12 +47,15 @@ $('.btn-assign').click(function () {
 // Tombol refresh route
 $('#btn-refresh').click(function () {
     var $icon = $(this).find('.spinner-icon');
-    $icon.addClass('spin-animation').show();
+    
+    // Tampilkan dan mulai animasi
+    $icon.removeClass('d-none').addClass('spin-animation');
 
     $.post($(this).attr('href'), function (r) {
         updateRoutes(r);
     }).always(function () {
-        $icon.removeClass('spin-animation').hide();
+        // Sembunyikan kembali setelah selesai
+        $icon.removeClass('spin-animation').addClass('d-none');
     });
 
     return false;
