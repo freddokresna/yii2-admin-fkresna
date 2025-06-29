@@ -55,7 +55,7 @@ $('#btn-refresh').click(function () {
         updateRoutes(r);
     }).always(function () {
         // Sembunyikan kembali setelah selesai
-        $icon.removeClass('spin-animation').addClass('d-none');
+       // $icon.removeClass('spin-animation').addClass('d-none');
     });
 
     return false;
