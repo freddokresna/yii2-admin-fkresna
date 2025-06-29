@@ -19,7 +19,7 @@ $this->params['nav-items'] = $menus;
         <div id="manager-menu" class="list-group">
             <?php
             foreach ($menus as $menu) {
-                $label = Html::tag('i', '', ['class' => 'glyphicon glyphicon-chevron-right pull-right']) .
+                $label = Html::tag('i', '', ['class' => 'bi bi-chevron-right float-end']) .
                     Html::tag('span', Html::encode($menu['label']), []);
                 $active = $menu['active'] ? ' active' : '';
                 echo Html::a($label, $menu['url'], [

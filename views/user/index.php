@@ -48,7 +48,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             'data-method' => 'post',
                             'data-pjax' => '0',
                         ];
-                        return Html::a('<span class="glyphicon glyphicon-ok"></span>', $url, $options);
+                        return Html::a('<span class="bi bi-check"></span>', $url, $options);
                     }
                     ]
                 ],

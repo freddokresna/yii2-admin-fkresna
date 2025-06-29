@@ -43,7 +43,7 @@ $animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display:none;
             <input class="form-control search" data-target="available"
                    placeholder="<?=Yii::t('rbac-admin', 'Search for available');?>">
             <span class="input-group-btn">
-                <?=Html::a('<span class="glyphicon glyphicon-refresh"></span>', ['refresh'], [
+                <?=Html::a('<span class="bi bi-arrow-repeat spinner-icon"></span>', ['refresh'], [
     'class' => 'btn btn-default',
     'id' => 'btn-refresh',
 ]);?>
