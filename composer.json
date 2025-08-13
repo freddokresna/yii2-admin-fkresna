@@ -23,8 +23,7 @@
     ],
     "require": {
         "yiisoft/yii2": "2.0.53",
-        "ezyang/htmlpurifier": "^4.18",
-        "cebe/markdown": "dev-master",
+        "ezyang/htmlpurifier": "^4.18", 
         "yidas/yii2-composer-bower-skip": "^2.0",
         "yidas/yii2-bower-asset": "^2.0"
     },
