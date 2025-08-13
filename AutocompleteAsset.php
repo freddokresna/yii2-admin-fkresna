@@ -19,15 +19,18 @@ class AutocompleteAsset extends AssetBundle
     /**
      * @inheritdoc
      */
-    public $css = [
-        'jquery-ui.css',
+     public $css = [
+        // '@bower/jquery-ui/themes/base/all.css',  // hapus
+        'https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css',
     ];
-    /**
-     * @inheritdoc
-     */
+
     public $js = [
-        'jquery-ui.js',
+        // '@bower/jquery/dist/jquery.js',         // hapus
+        // '@bower/jquery-ui/jquery-ui.js',        // hapus
+        'https://code.jquery.com/jquery-3.7.1.min.js',
+        'https://code.jquery.com/ui/1.13.3/jquery-ui.min.js',
     ];
+ 
     /**
      * @inheritdoc
      */

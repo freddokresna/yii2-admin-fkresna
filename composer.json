@@ -26,10 +26,10 @@
         }
     ],
     "require": {
-        "yiisoft/yii2": "~2.0.15"
+        "yiisoft/yii2": "~2.0.53"
     },
     "require-dev": {
-        "yiisoft/yii2-codeception": "~2.0"
+         
     },
     "suggest": {
         "yiisoft/yii2-bootstrap": "Used when using layout 'left-menu', 'right-menu' or 'top-menu'"
@@ -45,8 +45,7 @@
             "dev-master": "2.x-dev"
         },
         "asset-installer-paths": {
-            "npm-asset-library": "vendor/npm",
-            "bower-asset-library": "vendor/bower"
+            "npm-asset-library": "vendor/npm"
         }
     },
     "config": {
