@@ -21,13 +21,13 @@ class AutocompleteAsset extends AssetBundle
      */
     
     public $css = [
-        '@mdm/admin/assets/jquery-ui.css',
+        'dist/themes/base/jquery-ui.css',
     ];
     /**
      * @inheritdoc
      */
     public $js = [
-        '@mdm/admin/assets/jquery-ui.js',
+        'jquery-ui.js',
     ];
     /**
      * @inheritdoc
