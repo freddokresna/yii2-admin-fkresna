@@ -4,83 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8e4d1738bbef08103d426e311a7b7ef2",
+    "content-hash": "1a90d4221d47acd4b148e96df4ec67f4",
     "packages": [
-        {
-            "name": "bower-asset/inputmask",
-            "version": "5.x-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/RobinHerbots/Inputmask.git",
-                "reference": "55dcd7e87bc74bbd9cdd67669fa6a6a589ba98eb"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/RobinHerbots/Inputmask/zipball/55dcd7e87bc74bbd9cdd67669fa6a6a589ba98eb",
-                "reference": "55dcd7e87bc74bbd9cdd67669fa6a6a589ba98eb"
-            },
-            "require": {
-                "bower-asset/jquery": ">=1.7"
-            },
-            "type": "bower-asset",
-            "license": [
-                "http://opensource.org/licenses/mit-license.php"
-            ]
-        },
-        {
-            "name": "bower-asset/jquery",
-            "version": "3.7.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/jquery/jquery-dist.git",
-                "reference": "fde1f76e2799dd877c176abde0ec836553246991"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/jquery/jquery-dist/zipball/fde1f76e2799dd877c176abde0ec836553246991",
-                "reference": "fde1f76e2799dd877c176abde0ec836553246991"
-            },
-            "type": "bower-asset",
-            "license": [
-                "MIT"
-            ]
-        },
-        {
-            "name": "bower-asset/punycode",
-            "version": "v1.4.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mathiasbynens/punycode.js.git",
-                "reference": "0fbadd6e81f3a0ce06c38998040d6db6bdfbc5c9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mathiasbynens/punycode.js/zipball/0fbadd6e81f3a0ce06c38998040d6db6bdfbc5c9",
-                "reference": "0fbadd6e81f3a0ce06c38998040d6db6bdfbc5c9"
-            },
-            "type": "bower-asset"
-        },
-        {
-            "name": "bower-asset/yii2-pjax",
-            "version": "2.0.8",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/yiisoft/jquery-pjax.git",
-                "reference": "a9298d57da63d14a950f1b94366a864bc62264fb"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/yiisoft/jquery-pjax/zipball/a9298d57da63d14a950f1b94366a864bc62264fb",
-                "reference": "a9298d57da63d14a950f1b94366a864bc62264fb"
-            },
-            "require": {
-                "bower-asset/jquery": ">=1.8"
-            },
-            "type": "bower-asset",
-            "license": [
-                "MIT"
-            ]
-        },
         {
             "name": "cebe/markdown",
             "version": "dev-master",
@@ -208,17 +133,102 @@
             "time": "2024-11-01T03:51:45+00:00"
         },
         {
-            "name": "yiisoft/yii2",
-            "version": "dev-master",
+            "name": "yidas/yii2-bower-asset",
+            "version": "2.0.13.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/yiisoft/yii2-framework.git",
-                "reference": "c129ca23ab3be8ebc66c57920d68ba69394256e5"
+                "url": "https://github.com/yidas/yii2-bower-asset.git",
+                "reference": "056dd55087e0b945c01c91c99eb346ef6e28a42e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yiisoft/yii2-framework/zipball/c129ca23ab3be8ebc66c57920d68ba69394256e5",
-                "reference": "c129ca23ab3be8ebc66c57920d68ba69394256e5",
+                "url": "https://api.github.com/repos/yidas/yii2-bower-asset/zipball/056dd55087e0b945c01c91c99eb346ef6e28a42e",
+                "reference": "056dd55087e0b945c01c91c99eb346ef6e28a42e",
+                "shasum": ""
+            },
+            "provide": {
+                "bower-asset/bootstrap": "*",
+                "bower-asset/inputmask": "*",
+                "bower-asset/jquery": "*",
+                "bower-asset/punycode": "*",
+                "bower-asset/typeahead.js": "*",
+                "bower-asset/yii2-pjax": "*"
+            },
+            "type": "yii2-extension",
+            "autoload": {
+                "psr-4": {
+                    "yidas\\yii2BowerAsset\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Bower Assets for Yii 2 app provided via Composer repository",
+            "keywords": [
+                "bower",
+                "bower asset",
+                "framework",
+                "yii2"
+            ],
+            "support": {
+                "issues": "https://github.com/yidas/yii2-bower-asset/issues?state=open",
+                "source": "https://github.com/yidas/yii2-bower-asset"
+            },
+            "time": "2019-09-19T11:33:03+00:00"
+        },
+        {
+            "name": "yidas/yii2-composer-bower-skip",
+            "version": "2.0.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yidas/yii2-composer-bower-skip.git",
+                "reference": "1156ed4dc2ddca811bd2582d09e8885585fbd0cb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yidas/yii2-composer-bower-skip/zipball/1156ed4dc2ddca811bd2582d09e8885585fbd0cb",
+                "reference": "1156ed4dc2ddca811bd2582d09e8885585fbd0cb",
+                "shasum": ""
+            },
+            "provide": {
+                "bower-asset/bootstrap": "*",
+                "bower-asset/inputmask": "*",
+                "bower-asset/jquery": "*",
+                "bower-asset/punycode": "*",
+                "bower-asset/typeahead.js": "*",
+                "bower-asset/yii2-pjax": "*"
+            },
+            "type": "yii2-extension",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A Composer package that allows you to install or update Yii2 without Bower-Asset",
+            "keywords": [
+                "bower",
+                "bower asset",
+                "framework",
+                "yii2"
+            ],
+            "support": {
+                "issues": "https://github.com/yidas/yii2-composer-bower-skip/issues?state=open",
+                "source": "https://github.com/yidas/yii2-composer-bower-skip"
+            },
+            "time": "2017-11-03T06:28:14+00:00"
+        },
+        {
+            "name": "yiisoft/yii2",
+            "version": "2.0.53",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yiisoft/yii2-framework.git",
+                "reference": "6c622fb8243181d7912b62ad80821cc0e1c745db"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yiisoft/yii2-framework/zipball/6c622fb8243181d7912b62ad80821cc0e1c745db",
+                "reference": "6c622fb8243181d7912b62ad80821cc0e1c745db",
                 "shasum": ""
             },
             "require": {
@@ -234,7 +244,6 @@
                 "php": ">=7.3.0",
                 "yiisoft/yii2-composer": "~2.0.4"
             },
-            "default-branch": true,
             "bin": [
                 "yii"
             ],
@@ -327,7 +336,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-12T04:51:01+00:00"
+            "time": "2025-06-27T07:42:53+00:00"
         },
         {
             "name": "yiisoft/yii2-composer",
@@ -410,7 +419,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "cebe/markdown": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {},

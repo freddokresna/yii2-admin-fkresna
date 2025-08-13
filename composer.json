@@ -18,21 +18,15 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://asset-packagist.org"
-        },
-        {
-            "type": "composer",
             "url": "https://repo.packagist.org"
         }
     ],
     "require": {
-        "yiisoft/yii2": "~2.0.53"
-    },
-    "require-dev": {
-         
-    },
-    "suggest": {
-        "yiisoft/yii2-bootstrap": "Used when using layout 'left-menu', 'right-menu' or 'top-menu'"
+        "yiisoft/yii2": "2.0.53",
+        "ezyang/htmlpurifier": "^4.18",
+        "cebe/markdown": "dev-master",
+        "yidas/yii2-composer-bower-skip": "^2.0",
+        "yidas/yii2-bower-asset": "^2.0"
     },
     "autoload": {
         "psr-4": {
