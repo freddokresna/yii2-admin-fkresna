@@ -14,7 +14,7 @@
             "email": "freddokresna@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "repositories": [
         {
             "type": "composer",
