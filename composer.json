@@ -1,6 +1,6 @@
 {
     "name": "freddokresna/yii2-admin-fkresna",
-    "description": "RBAC Auth manager for Yii2 forked",
+    "description": "RBAC Auth manager for Yii2 forked ",
     "keywords": ["yii", "admin", "auth", "rbac"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
@@ -10,22 +10,19 @@
     },
     "authors": [
         {
-            "name": "freddokresna",
-            "email": "freddokresna@gmail.com"
+            "name": "Misbahul Munir",
+            "email": "misbahuldmunir@gmail.com"
         }
     ],
     "minimum-stability": "stable",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://repo.packagist.org"
-        }
-    ],
     "require": {
-        "yiisoft/yii2": "2.0.53",
-        "ezyang/htmlpurifier": "^4.18", 
-        "yidas/yii2-composer-bower-skip": "^2.0",
-        "yidas/yii2-bower-asset": "^2.0"
+        "yiisoft/yii2": "~2.0.7"
+    },
+    "require-dev": {
+        "yiisoft/yii2-codeception": "~2.0"
+    },
+    "suggest": {
+        "yiisoft/yii2-bootstrap": "Used when using layout 'left-menu', 'right-menu' or 'top-menu'"
     },
     "autoload": {
         "psr-4": {
@@ -38,9 +35,16 @@
             "dev-master": "2.x-dev"
         },
         "asset-installer-paths": {
-            "npm-asset-library": "vendor/npm"
+            "npm-asset-library": "vendor/npm",
+            "bower-asset-library": "vendor/bower"
         }
     },
+    "repositories": [
+    {
+        "type": "composer",
+        "url": "https://asset-packagist.org"
+    }
+],
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true
