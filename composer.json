@@ -1,6 +1,6 @@
 {
     "name": "freddokresna/yii2-admin-fkresna",
-    "description": "RBAC Auth manager for Yii2 forked ",
+    "description": "RBAC Auth manager for Yii2 forked",
     "keywords": ["yii", "admin", "auth", "rbac"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
@@ -10,13 +10,23 @@
     },
     "authors": [
         {
-            "name": "Misbahul Munir",
-            "email": "misbahuldmunir@gmail.com"
+            "name": "freddokresna",
+            "email": "freddokresna@gmail.com"
         }
     ],
     "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        },
+        {
+            "type": "composer",
+            "url": "https://repo.packagist.org"
+        }
+    ],
     "require": {
-        "yiisoft/yii2": "~2.0.7"
+        "yiisoft/yii2": "~2.0.15"
     },
     "require-dev": {
         "yiisoft/yii2-codeception": "~2.0"
@@ -37,6 +47,11 @@
         "asset-installer-paths": {
             "npm-asset-library": "vendor/npm",
             "bower-asset-library": "vendor/bower"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true
         }
     }
 }
