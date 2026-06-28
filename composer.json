@@ -16,8 +16,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "yiisoft/yii2": "~2.0.7",
-        "yidas/yii2-bower-asset": "^2.0"
+        "yiisoft/yii2": "~2.0.7"
     },
     "suggest": {
         "yiisoft/yii2-bootstrap": "Used when using layout 'left-menu', 'right-menu' or 'top-menu'"
@@ -37,7 +36,12 @@
             "bower-asset-library": "vendor/npm"
         }
     },
-   
+    "repositories": [
+    {
+        "type": "composer",
+        "url": "https://asset-packagist.org"
+    }
+],
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true
