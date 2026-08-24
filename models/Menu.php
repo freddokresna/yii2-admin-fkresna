@@ -108,7 +108,7 @@ class Menu extends \yii\db\ActiveRecord
      */
     public function getMenuParent()
     {
-        return $this->hasOne(Menu::className(), ['id' => 'parent']);
+        return $this->hasOne(Menu::class, ['id' => 'parent']);
     }
 
     /**
@@ -117,7 +117,7 @@ class Menu extends \yii\db\ActiveRecord
      */
     public function getMenus()
     {
-        return $this->hasMany(Menu::className(), ['parent' => 'id']);
+        return $this->hasMany(Menu::class, ['parent' => 'id']);
     }
     private static $_routes;
 
@@ -130,7 +130,7 @@ class Menu extends \yii\db\ActiveRecord
         if (self::$_routes === null) {
             self::$_routes = [];
             foreach (Configs::authManager()->getPermissions() as $name => $value) {
-                if ($name[0] === '/' && substr($name, -1) != '*') {
+                if (is_string($name) && $name !== '' && $name[0] === '/' && substr($name, -1) !== '*') {
                     self::$_routes[] = $name;
                 }
             }

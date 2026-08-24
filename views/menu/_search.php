@@ -1,7 +1,7 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\bootstrap5\ActiveForm;
 
 /**
  * @var yii\web\View $this
@@ -27,9 +27,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'data') ?>
 
-    <div class="form-group">
+    <div class="mb-3">
         <?= Html::submitButton(Yii::t('rbac-admin', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('rbac-admin', 'Reset'), ['class' => 'btn btn-default']) ?>
+        <?= Html::resetButton(Yii::t('rbac-admin', 'Reset'), ['class' => 'btn btn-outline-secondary']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

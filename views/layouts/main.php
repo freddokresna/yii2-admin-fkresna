@@ -1,16 +1,16 @@
 <?php
 
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
+use yii\bootstrap5\NavBar;
+use yii\bootstrap5\Nav;
+use yii\bootstrap5\BootstrapIconAsset;
 use yii\helpers\Html;
 
-/* @var $this \yii\web\View */
-/* @var $content string */
+/** @var \yii\web\View $this */
+/** @var string $content */
 
-AppAsset::register($this);
 list(,$url) = Yii::$app->assetManager->publish('@mdm/admin/assets');
 $this->registerCssFile($url.'/main.css');
-$this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css');
+BootstrapIconAsset::register($this);
 
 ?>
 <?php $this->beginPage() ?>
@@ -28,18 +28,18 @@ $this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font
         <?php
         NavBar::begin([
             'brandLabel' => false,
-            'options' => ['class' => 'navbar-inverse navbar-fixed-top'],
+            'options' => ['class' => 'navbar-dark bg-dark fixed-top shadow-sm'],
         ]);
 
         if (!empty($this->params['top-menu']) && isset($this->params['nav-items'])) {
             echo Nav::widget([
-                'options' => ['class' => 'nav navbar-nav'],
+                'options' => ['class' => 'navbar-nav me-auto'],
                 'items' => $this->params['nav-items'],
             ]);
         }
 
         echo Nav::widget([
-            'options' => ['class' => 'nav navbar-nav navbar-right'],
+            'options' => ['class' => 'navbar-nav ms-auto'],
             'items' => $this->context->module->navbar,
          ]);
         NavBar::end();
@@ -51,7 +51,7 @@ $this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font
 
         <footer class="footer">
             <div class="container">
-                <p class="pull-right"><?= Yii::powered() ?></p>
+                <p class="text-end mb-0"><?= Yii::powered() ?></p>
             </div>
         </footer>
 

@@ -33,7 +33,7 @@ class UserController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'logout' => ['post'],
@@ -50,9 +50,10 @@ class UserController extends Controller
     {
         if (parent::beforeAction($action)) {
             if (Yii::$app->has('mailer') && ($mailer = Yii::$app->getMailer()) instanceof BaseMailer) {
-                /* @var $mailer BaseMailer */
-                $this->_oldMailPath = $mailer->getViewPath();
-                $mailer->setViewPath('@mdm/admin/mail');
+                $this->_oldMailPath = method_exists($mailer, 'getViewPath') ? $mailer->getViewPath() : null;
+                if ($this->_oldMailPath !== null && method_exists($mailer, 'setViewPath')) {
+                    $mailer->setViewPath('@mdm/admin/mail');
+                }
             }
             return true;
         }
@@ -65,7 +66,10 @@ class UserController extends Controller
     public function afterAction($action, $result)
     {
         if ($this->_oldMailPath !== null) {
-            Yii::$app->getMailer()->setViewPath($this->_oldMailPath);
+            $mailer = Yii::$app->getMailer();
+            if (method_exists($mailer, 'setViewPath')) {
+                $mailer->setViewPath($this->_oldMailPath);
+            }
         }
         return parent::afterAction($action, $result);
     }

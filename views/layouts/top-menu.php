@@ -1,6 +1,6 @@
 <?php
-/* @var $this \yii\web\View */
-/* @var $content string */
+/** @var \yii\web\View $this */
+/** @var string $content */
 
 $controller = $this->context;
 $menus = $controller->module->menus;
@@ -13,7 +13,7 @@ $this->params['top-menu'] = true;
 ?>
 <?php $this->beginContent($controller->module->mainLayout) ?>
 <div class="row">
-    <div class="col-sm-12">
+    <div class="col-12">
         <?= $content ?>
     </div>
 </div>

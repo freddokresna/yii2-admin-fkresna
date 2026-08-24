@@ -10,9 +10,9 @@ use yii\web\View;
 use yii\web\YiiAsset;
 use yii\widgets\DetailView;
 
-/* @var $this View */
-/* @var $model AuthItem */
-/* @var $context ItemController */
+/** @var View $this */
+/** @var AuthItem $model */
+/** @var ItemController $context */
 
 $context = $this->context;
 $labels = $context->labels();
@@ -46,7 +46,7 @@ $animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display: none
         <?= Html::a(Yii::t('rbac-admin', 'Create'), ['create'], ['class' => 'btn btn-success']); ?>
     </p>
     <div class="row">
-        <div class="col-sm-11">
+        <div class="col-12">
             <?=
             DetailView::widget([
                 'model' => $model,
@@ -62,7 +62,7 @@ $animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display: none
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-11">
+        <div class="col-12">
             <table class="table table-striped table-bordered">
                 <tbody>
                     <tr>
@@ -76,29 +76,29 @@ $animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display: none
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-5">
+        <div class="col-md-5">
             <input class="form-control search" data-target="available"
                    placeholder="<?= Yii::t('rbac-admin', 'Search for available'); ?>">
             <select multiple size="20" class="form-control list" data-target="available"></select>
         </div>
-        <div class="col-sm-1">
+        <div class="col-md-1 d-flex flex-column align-items-center justify-content-center gap-2">
             <br><br>
             <?=
-            Html::a('&gt;&gt;' . $animateIcon, ['assign', 'id' => $model->name], [
+            Html::a('<i class="bi bi-chevron-double-right" aria-hidden="true"></i><span class="visually-hidden">' . Yii::t('rbac-admin', 'Assign') . '</span>' . $animateIcon, ['assign', 'id' => $model->name], [
                 'class' => 'btn btn-success btn-assign',
                 'data-target' => 'available',
                 'title' => Yii::t('rbac-admin', 'Assign'),
             ]);
             ?><br><br>
             <?=
-            Html::a('&lt;&lt;' . $animateIcon, ['remove', 'id' => $model->name], [
+            Html::a('<i class="bi bi-chevron-double-left" aria-hidden="true"></i><span class="visually-hidden">' . Yii::t('rbac-admin', 'Remove') . '</span>' . $animateIcon, ['remove', 'id' => $model->name], [
                 'class' => 'btn btn-danger btn-assign',
                 'data-target' => 'assigned',
                 'title' => Yii::t('rbac-admin', 'Remove'),
             ]);
             ?>
         </div>
-        <div class="col-sm-5">
+        <div class="col-md-5">
             <input class="form-control search" data-target="assigned"
                    placeholder="<?= Yii::t('rbac-admin', 'Search for assigned'); ?>">
             <select multiple size="20" class="form-control list" data-target="assigned"></select>

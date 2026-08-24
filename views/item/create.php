@@ -2,9 +2,9 @@
 
 use yii\helpers\Html;
 
-/* @var $this yii\web\View */
-/* @var $model mdm\admin\models\AuthItem */
-/* @var $context mdm\admin\components\ItemController */
+/** @var yii\web\View $this */
+/** @var mdm\admin\models\AuthItem $model */
+/** @var mdm\admin\components\ItemController $context */
 
 $context = $this->context;
 $labels = $context->labels();

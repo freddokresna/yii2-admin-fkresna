@@ -49,13 +49,13 @@ $('#btn-refresh').click(function () {
     var $icon = $(this).find('.spinner-icon');
     
     // Tampilkan dan mulai animasi
-    $icon.addClass('spin-animation');
+    $icon.show().addClass('spin-animation');
 
     $.post($(this).attr('href'), function (r) {
         updateRoutes(r);
     }).always(function () {
         // Sembunyikan kembali setelah selesai
-        $icon.removeClass('spin-animation');
+        $icon.removeClass('spin-animation').hide();
     });
 
     return false;

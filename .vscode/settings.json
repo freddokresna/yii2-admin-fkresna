@@ -1,0 +1,4 @@
+{
+    "intelephense.diagnostics.undefinedVariables": false,
+    "php.validate.enable": false
+}

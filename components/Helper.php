@@ -26,7 +26,7 @@ class Helper
             self::$_routes = [];
             $manager = Configs::authManager();
             foreach ($manager->getPermissions() as $item) {
-                if ($item->name[0] === '/') {
+                if (is_string($item->name) && $item->name !== '' && $item->name[0] === '/') {
                     self::$_routes[$item->name] = $item->name;
                 }
             }
@@ -52,7 +52,7 @@ class Helper
                     $permissions = array_merge($permissions, $manager->getPermissionsByRole($role));
                 }
                 foreach ($permissions as $item) {
-                    if ($item->name[0] === '/') {
+                    if (is_string($item->name) && $item->name !== '' && $item->name[0] === '/') {
                         self::$_defaultRoutes[$item->name] = true;
                     }
                 }
@@ -81,7 +81,7 @@ class Helper
                 $routes = static::getDefaultRoutes();
                 $manager = Configs::authManager();
                 foreach ($manager->getPermissionsByUser($userId) as $item) {
-                    if ($item->name[0] === '/') {
+                    if (is_string($item->name) && $item->name !== '' && $item->name[0] === '/') {
                         $routes[$item->name] = true;
                     }
                 }
@@ -243,6 +243,9 @@ class Helper
      */
     public static function invalidate()
     {
+        self::$_userRoutes = [];
+        self::$_defaultRoutes = null;
+        self::$_routes = null;
         if (Configs::cache() !== null) {
             TagDependency::invalidate(Configs::cache(), Configs::CACHE_TAG);
         }

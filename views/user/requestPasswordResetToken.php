@@ -2,9 +2,9 @@
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap5\ActiveForm */
-/* @var $model \mdm\admin\models\form\PasswordResetRequest */
+/** @var yii\web\View $this */
+/** @var yii\bootstrap5\ActiveForm $form */
+/** @var \mdm\admin\models\form\PasswordResetRequest $model */
 
 $this->title = 'Request password reset';
 $this->params['breadcrumbs'][] = $this->title;
@@ -15,10 +15,10 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>Please fill out your email. A link to reset password will be sent there.</p>
 
     <div class="row">
-        <div class="col-lg-5">
+        <div class="col-md-6 col-lg-5">
             <?php $form = ActiveForm::begin(['id' => 'request-password-reset-form']); ?>
                 <?= $form->field($model, 'email') ?>
-                <div class="form-group">
+                <div class="mb-3">
                     <?= Html::submitButton(Yii::t('rbac-admin', 'Send'), ['class' => 'btn btn-primary']) ?>
                 </div>
             <?php ActiveForm::end(); ?>

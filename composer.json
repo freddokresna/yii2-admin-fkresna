@@ -11,14 +11,36 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "yiisoft/yii2": "~2.0.14"
+        "php": ">=8.2.0",
+        "yiisoft/yii2": "^2.0.55",
+        "yiisoft/yii2-bootstrap5": "^2.0.51",
+        "twbs/bootstrap-icons": "^1.13"
+    },
+    "require-dev": {
+        "codeception/codeception": "^5.3",
+        "codeception/module-filesystem": "^3.0",
+        "codeception/module-phpbrowser": "^4.1",
+        "codeception/module-yii2": "^1.1",
+        "codeception/specify": "^2.0",
+        "codeception/verify": "^2.0",
+        "phpunit/phpunit": "^9.6"
     },
     "autoload": {
         "psr-4": {
             "mdm\\admin\\": ""
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "extra": {
         "branch-alias": {
             "dev-master": "2.x-dev"

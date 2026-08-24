@@ -2,9 +2,9 @@
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap5\ActiveForm */
-/* @var $model \mdm\admin\models\form\ChangePassword */
+/** @var yii\web\View $this */
+/** @var yii\bootstrap5\ActiveForm $form */
+/** @var \mdm\admin\models\form\ChangePassword $model */
 
 $this->title = Yii::t('rbac-admin', 'Change Password');
 $this->params['breadcrumbs'][] = $this->title;
@@ -15,12 +15,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>Please fill out the following fields to change password:</p>
 
     <div class="row">
-        <div class="col-lg-5">
+        <div class="col-md-6 col-lg-5">
             <?php $form = ActiveForm::begin(['id' => 'form-change']); ?>
                 <?= $form->field($model, 'oldPassword')->passwordInput() ?>
                 <?= $form->field($model, 'newPassword')->passwordInput() ?>
                 <?= $form->field($model, 'retypePassword')->passwordInput() ?>
-                <div class="form-group">
+                <div class="mb-3">
                     <?= Html::submitButton(Yii::t('rbac-admin', 'Change'), ['class' => 'btn btn-primary', 'name' => 'change-button']) ?>
                 </div>
             <?php ActiveForm::end(); ?>

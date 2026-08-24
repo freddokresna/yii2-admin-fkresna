@@ -32,9 +32,15 @@ class Route extends \mdm\admin\BaseObject
      */
     public function addNew($routes)
     {
+        if (!is_array($routes)) {
+            return;
+        }
         $manager = Configs::authManager();
         foreach ($routes as $route) {
             try {
+                if (!is_string($route) || trim($route) === '') {
+                    continue;
+                }
                 $r = explode('&', $route);
                 $item = $manager->createPermission($this->getPermissionName($route));
                 if (count($r) > 1) {
@@ -45,8 +51,11 @@ class Route extends \mdm\admin\BaseObject
                     }
                     unset($r[0]);
                     foreach ($r as $part) {
-                        $part = explode('=', $part);
-                        $item->data['params'][$part[0]] = isset($part[1]) ? $part[1] : '';
+                        $part = explode('=', $part, 2);
+                        $key = trim((string)$part[0]);
+                        if ($key !== '') {
+                            $item->data['params'][$key] = isset($part[1]) ? $part[1] : '';
+                        }
                     }
                     $this->setDefaultRule();
                     $item->ruleName = RouteRule::RULE_NAME;
@@ -69,9 +78,15 @@ class Route extends \mdm\admin\BaseObject
      */
     public function remove($routes)
     {
+        if (!is_array($routes)) {
+            return;
+        }
         $manager = Configs::authManager();
         foreach ($routes as $route) {
             try {
+                if (!is_string($route) || trim($route) === '') {
+                    continue;
+                }
                 $item = $manager->createPermission($this->getPermissionName($route));
                 $manager->remove($item);
             } catch (Exception $exc) {
@@ -159,7 +174,7 @@ class Route extends \mdm\admin\BaseObject
         }
         $exists = [];
         foreach (array_keys($manager->getPermissions()) as $name) {
-            if ($name[0] !== $this->routePrefix) {
+            if ($name === '' || $name[0] !== $this->routePrefix) {
                 continue;
             }
             $exists[] = $name;
@@ -241,22 +256,21 @@ class Route extends \mdm\admin\BaseObject
         $token = "Get controllers from '$path'";
         Yii::beginProfile($token, __METHOD__);
         try {
-            if (!is_dir($path)) {
-                return;
-            }
-            foreach (scandir($path) as $file) {
-                if ($file == '.' || $file == '..') {
-                    continue;
-                }
-                if (is_dir($path . '/' . $file) && preg_match('%^[a-z0-9_/]+$%i', $file . '/')) {
-                    $this->getControllerFiles($module, $namespace . $file . '\\', $prefix . $file . '/', $result);
-                } elseif (strcmp(substr($file, -14), 'Controller.php') === 0) {
-                    $baseName = substr(basename($file), 0, -14);
-                    $name = strtolower(preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $baseName));
-                    $id = ltrim((string)str_replace(' ', '-', $name), '-');
-                    $className = $namespace . $baseName . 'Controller';
-                    if (strpos($className, '-') === false && class_exists($className) && is_subclass_of($className, 'yii\base\Controller')) {
-                        $this->getControllerActions($className, $prefix . $id, $module, $result);
+            if (is_dir($path)) {
+                foreach (scandir($path) as $file) {
+                    if ($file == '.' || $file == '..') {
+                        continue;
+                    }
+                    if (is_dir($path . '/' . $file) && preg_match('%^[a-z0-9_/]+$%i', $file . '/')) {
+                        $this->getControllerFiles($module, $namespace . $file . '\\', $prefix . $file . '/', $result);
+                    } elseif (strcmp(substr($file, -14), 'Controller.php') === 0) {
+                        $baseName = substr(basename($file), 0, -14);
+                        $name = strtolower(preg_replace('/(?<![A-Z])[A-Z]/', ' \\0', $baseName));
+                        $id = ltrim((string)str_replace(' ', '-', $name), '-');
+                        $className = $namespace . $baseName . 'Controller';
+                        if (strpos($className, '-') === false && class_exists($className) && is_subclass_of($className, 'yii\\base\\Controller')) {
+                            $this->getControllerActions($className, $prefix . $id, $module, $result);
+                        }
                     }
                 }
             }
@@ -271,7 +285,7 @@ class Route extends \mdm\admin\BaseObject
      * @param mixed $type
      * @param string $id
      * @param \yii\base\Module $module
-     * @param string $result
+    * @param array $result
      */
     protected function getControllerActions($type, $id, $module, &$result)
     {

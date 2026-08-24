@@ -19,7 +19,7 @@ class RouteController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'create' => ['post'],
                     'assign' => ['post'],
@@ -61,6 +61,7 @@ class RouteController extends Controller
     public function actionAssign()
     {
         $routes = Yii::$app->getRequest()->post('routes', []);
+        $routes = is_array($routes) ? $routes : [];
         $model = new Route();
         $model->addNew($routes);
         Yii::$app->getResponse()->format = 'json';
@@ -74,6 +75,7 @@ class RouteController extends Controller
     public function actionRemove()
     {
         $routes = Yii::$app->getRequest()->post('routes', []);
+        $routes = is_array($routes) ? $routes : [];
         $model = new Route();
         $model->remove($routes);
         Yii::$app->getResponse()->format = 'json';

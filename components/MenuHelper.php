@@ -12,7 +12,7 @@ use mdm\admin\models\Menu;
  * 
  * ```
  * use mdm\admin\components\MenuHelper;
- * use yii\bootstrap\Nav;
+ * use yii\bootstrap5\Nav;
  *
  * echo Nav::widget([
  *    'items' => MenuHelper::getAssignedMenu(Yii::$app->user->id)
@@ -45,7 +45,7 @@ class MenuHelper
      * Use to get assigned menu of user.
      * @param mixed $userId
      * @param integer $root
-     * @param \Closure $callback use to reformat output.
+        * @param \Closure $callback use to reformat output.
      * callback should have format like
      * 
      * ```
@@ -76,7 +76,7 @@ class MenuHelper
             $routes = $filter1 = $filter2 = [];
             if ($userId !== null) {
                 foreach ($manager->getPermissionsByUser($userId) as $name => $value) {
-                    if ($name[0] === '/') {
+                    if (is_string($name) && $name !== '' && $name[0] === '/') {
                         if (substr($name, -2) === '/*') {
                             $name = substr($name, 0, -1);
                         }
@@ -86,7 +86,7 @@ class MenuHelper
             }
             foreach ($manager->defaultRoles as $role) {
                 foreach ($manager->getPermissionsByRole($role) as $name => $value) {
-                    if ($name[0] === '/') {
+                    if (is_string($name) && $name !== '' && $name[0] === '/') {
                         if (substr($name, -2) === '/*') {
                             $name = substr($name, 0, -1);
                         }
@@ -147,12 +147,18 @@ class MenuHelper
      */
     private static function requiredParent($assigned, &$menus)
     {
+        $assigned = array_values(array_unique($assigned));
+        $assignedMap = array_fill_keys($assigned, true);
         $l = count($assigned);
         for ($i = 0; $i < $l; $i++) {
             $id = $assigned[$i];
+            if (!isset($menus[$id])) {
+                continue;
+            }
             $parent_id = $menus[$id]['parent'];
-            if ($parent_id !== null && !in_array($parent_id, $assigned)) {
+            if ($parent_id !== null && !isset($assignedMap[$parent_id])) {
                 $assigned[$l++] = $parent_id;
+                $assignedMap[$parent_id] = true;
             }
         }
 
@@ -172,8 +178,11 @@ class MenuHelper
             $url[0] = $r[0];
             unset($r[0]);
             foreach ($r as $part) {
-                $part = explode('=', $part);
-                $url[$part[0]] = isset($part[1]) ? $part[1] : '';
+                $part = explode('=', $part, 2);
+                $key = trim((string)$part[0]);
+                if ($key !== '') {
+                    $url[$key] = isset($part[1]) ? $part[1] : '';
+                }
             }
 
             return $url;
@@ -186,7 +195,7 @@ class MenuHelper
      * Normalize menu
      * @param  array $assigned
      * @param  array $menus
-     * @param  Closure $callback
+    * @param  \Closure $callback
      * @param  integer $parent
      * @return array
      */
@@ -195,6 +204,9 @@ class MenuHelper
         $result = [];
         $order = [];
         foreach ($assigned as $id) {
+            if (!isset($menus[$id])) {
+                continue;
+            }
             $menu = $menus[$id];
             if ($menu['parent'] == $parent) {
                 $menu['children'] = static::normalizeMenu($assigned, $menus, $callback, $id);

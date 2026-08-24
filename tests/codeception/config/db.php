@@ -29,8 +29,13 @@ $databases = [
     ],
 ];
 
-$driver = 'mysql';
+$driver = getenv('MDM_ADMIN_TEST_DB') ?: 'mysql';
 if (is_file(__DIR__ . '/db-local.php')) {
     include __DIR__ . '/db-local.php';
 }
+
+if (!isset($databases[$driver])) {
+    throw new InvalidArgumentException('Unsupported MDM_ADMIN_TEST_DB driver: ' . $driver);
+}
+
 return array_merge(['class' => 'yii\db\Connection'], $databases[$driver]);

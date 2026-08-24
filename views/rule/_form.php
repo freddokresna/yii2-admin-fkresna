@@ -1,11 +1,11 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\bootstrap5\ActiveForm;
 
-/* @var $this  yii\web\View */
-/* @var $model mdm\admin\models\BizRule */
-/* @var $form ActiveForm */
+/** @var yii\web\View $this */
+/** @var mdm\admin\models\BizRule $model */
+/** @var ActiveForm $form */
 ?>
 
 <div class="auth-item-form">
@@ -16,7 +16,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'className')->textInput() ?>
 
-    <div class="form-group">
+    <div class="mb-3">
         <?php
         echo Html::submitButton($model->isNewRecord ? Yii::t('rbac-admin', 'Create') : Yii::t('rbac-admin', 'Update'), [
             'class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary'])
