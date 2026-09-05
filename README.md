@@ -7,7 +7,7 @@ Repository ini adalah package `freddokresna/yii2-admin-fkresna`. Namespace PHP t
 
 ## Persyaratan
 
-- PHP `>= 8.2`
+- PHP `>= 8.2` (diuji pada PHP `8.5`)
 - Yii Framework `^2.0.55`
 - Database dan komponen `db` Yii yang aktif
 - Komponen `authManager` Yii (`yii\rbac\DbManager` atau `yii\rbac\PhpManager`)
