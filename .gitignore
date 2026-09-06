@@ -5,6 +5,10 @@
 # phpstorm project files
 .idea
 
+# VS Code workspace settings (editor-local — jangan di-track agar tidak
+# melemahkan deteksi error kontributor)
+.vscode/
+
 # netbeans project files
 nbproject
 /nbproject/private/
