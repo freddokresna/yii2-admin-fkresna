@@ -15,7 +15,10 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          # PHP 8.5 = versi yang dipakai prod (SistemLogistik) & lockfile
+          # (commit b2378e5 "upgrade php 8.5"); dev deps (symfony 8.1,
+          # doctrine/instantiator 2.1) butuh PHP >= 8.4 — CI 8.2 tidak valid.
+          php-version: '8.5'
           coverage: none
 
       - name: Validate composer.json
