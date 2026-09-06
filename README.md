@@ -167,11 +167,13 @@ Dependensi pengujian sudah didefinisikan pada `require-dev`. Dari root repositor
 
 ```bash
 composer install
-vendor/bin/codecept build -c tests/codeception.yml
-vendor/bin/codecept run -c tests/codeception.yml
+vendor/bin/codecept run -c tests/codeception.yml unit
 ```
 
-Konfigurasi URL untuk functional/acceptance test berada di `tests/codeception.yml` dan secara default menunjuk ke `http://localhost:8080/index-test.php`. Sesuaikan URL tersebut dan jalankan web server aplikasi bila diperlukan.
+> Catatan (2026-09): suite `functional` & `acceptance` gaya codeception-v2 yang
+> bergantung `yiisoft/yii2-codeception` (abandoned) telah dihapus karena tidak
+> dapat dijalankan pada codeception ^5. Uji perilaku web/RBAC sebaiknya
+> dilakukan lewat unit test dengan `Yii::$app` + mock, atau migration host app.
 
 ## Lisensi
 

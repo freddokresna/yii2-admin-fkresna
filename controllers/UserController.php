@@ -171,13 +171,15 @@ class UserController extends Controller
     {
         $model = new PasswordResetRequest();
         if ($model->load(Yii::$app->getRequest()->post()) && $model->validate()) {
-            if ($model->sendEmail()) {
-                Yii::$app->getSession()->setFlash('success', 'Check your email for further instructions.');
-
-                return $this->goHome();
-            } else {
-                Yii::$app->getSession()->setFlash('error', 'Sorry, we are unable to reset password for email provided.');
+            // Anti user-enumeration: hasil kirim email TIDAK dibedakan di UI —
+            // selalu flash sukses generik. Kegagalan (email tak terdaftar /
+            // mailer error) hanya dicatat di log.
+            if (!$model->sendEmail()) {
+                Yii::info('Password reset request tanpa email terkirim: ' . $model->email, 'auth');
             }
+            Yii::$app->getSession()->setFlash('success', 'Jika email terdaftar, tautan reset password telah dikirim.');
+
+            return $this->goHome();
         }
 
         return $this->render('requestPasswordResetToken', [

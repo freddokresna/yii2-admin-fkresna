@@ -18,16 +18,13 @@ class PasswordResetRequest extends Model
      */
     public function rules()
     {
-        $class = Yii::$app->getUser()->identityClass ? : 'mdm\admin\models\User';
         return [
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],
             ['email', 'email'],
-            ['email', 'exist',
-                'targetClass' => $class,
-                'filter' => ['status' => UserStatus::ACTIVE],
-                'message' => 'There is no user with such email.'
-            ],
+            // TIDAK ada rule 'exist' — keberadaan akun tidak boleh dibedakan
+            // lewat pesan validasi (anti user-enumeration, audit QA wave-3).
+            // sendEmail() mengembalikan false diam-diam bila user tak ditemukan.
         ];
     }
 

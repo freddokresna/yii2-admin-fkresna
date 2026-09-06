@@ -96,13 +96,13 @@ function listUsers() {
     if (typeof _opts.users.prev !== 'undefined') {
         addBadge($('<span>').addClass('badge bg-primary').append(
             $('<a>').addClass('text-white').attr('href', '#')
-                .attr('data-target', _opts.users.prev).html('&laquo;')
+                .attr('data-target', 'prev').html('&laquo;')
         ));
     }
     if (typeof _opts.users.next !== 'undefined') {
         addBadge($('<span>').addClass('badge bg-primary').append(
             $('<a>').addClass('text-white').attr('href', '#')
-                .attr('data-target', _opts.users.next).html('&raquo;')
+                .attr('data-target', 'next').html('&raquo;')
         ));
     }
 }
