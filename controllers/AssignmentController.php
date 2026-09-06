@@ -102,7 +102,7 @@ class AssignmentController extends Controller
     public function actionAssign($id)
     {
         $items = Yii::$app->getRequest()->post('items', []);
-        $model = new Assignment($id);
+        $model = $this->findModel($id);
         $success = $model->assign($items);
         Yii::$app->getResponse()->format = 'json';
         return array_merge($model->getItems(), ['success' => $success]);
@@ -116,7 +116,7 @@ class AssignmentController extends Controller
     public function actionRevoke($id)
     {
         $items = Yii::$app->getRequest()->post('items', []);
-        $model = new Assignment($id);
+        $model = $this->findModel($id);
         $success = $model->revoke($items);
         Yii::$app->getResponse()->format = 'json';
         return array_merge($model->getItems(), ['success' => $success]);

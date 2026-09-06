@@ -73,17 +73,38 @@ function search(target) {
 
 function listUsers() {
     var $list = $('#list-users');
-    var users = _opts.users.users.map(function (user) {
-        return `<span class="badge bg-info"><a href="${user.link}" class="text-dark">${user.username}</a></span>`;
+    var first = true;
+
+    // Bangun elemen lewat DOM jQuery (bukan string innerHTML) supaya
+    // username dari API tidak dieksekusi sebagai HTML (stored XSS).
+    function addBadge($badge) {
+        if (!first) {
+            $list.append(' ');
+        }
+        first = false;
+        $list.append($badge);
+    }
+
+    $list.empty();
+    $.each(_opts.users.users, function (i, user) {
+        addBadge($('<span>').addClass('badge bg-info').append(
+            $('<a>').addClass('text-dark').attr('href', user.link).text(user.username)
+        ));
     });
-    users.push('<br>');
-    if (_opts.users.prev) {
-        users.push(`<span class="badge bg-primary"><a href="#" class="text-white" data-target="${_opts.users.prev}">&laquo;</a></span>`);
+
+    $list.append('<br>');
+    if (typeof _opts.users.prev !== 'undefined') {
+        addBadge($('<span>').addClass('badge bg-primary').append(
+            $('<a>').addClass('text-white').attr('href', '#')
+                .attr('data-target', _opts.users.prev).html('&laquo;')
+        ));
     }
-    if (_opts.users.next) {
-        users.push(`<span class="badge bg-primary"><a href="#" class="text-white" data-target="${_opts.users.next}">&raquo;</a></span>`);
+    if (typeof _opts.users.next !== 'undefined') {
+        addBadge($('<span>').addClass('badge bg-primary').append(
+            $('<a>').addClass('text-white').attr('href', '#')
+                .attr('data-target', _opts.users.next).html('&raquo;')
+        ));
     }
-    $list.html(users.join(' '));
 }
 
 // initial

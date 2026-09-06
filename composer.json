@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2.0",
+        "php": ">=8.4.0",
         "yiisoft/yii2": "^2.0.55",
         "yiisoft/yii2-bootstrap5": "^2.0.51",
         "twbs/bootstrap-icons": "^1.13"

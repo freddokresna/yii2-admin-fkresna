@@ -51,8 +51,14 @@ class PasswordResetRequest extends Model
             }
 
             if ($user->save()) {
+                // `supportEmail` param opsional; fallback pakai host aplikasi.
+                $host = Yii::$app->has('request') && Yii::$app->request instanceof \yii\web\Request
+                    ? Yii::$app->request->serverName
+                    : 'localhost';
+                $supportEmail = Yii::$app->params['supportEmail'] ?? 'no-reply@' . ($host ?: 'localhost');
+
                 return Yii::$app->mailer->compose(['html' => 'passwordResetToken-html', 'text' => 'passwordResetToken-text'], ['user' => $user])
-                    ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+                    ->setFrom([$supportEmail => Yii::$app->name . ' robot'])
                     ->setTo($this->email)
                     ->setSubject('Password reset for ' . Yii::$app->name)
                     ->send();

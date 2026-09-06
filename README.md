@@ -7,7 +7,7 @@ Repository ini adalah package `freddokresna/yii2-admin-fkresna`. Namespace PHP t
 
 ## Persyaratan
 
-- PHP `>= 8.2` (diuji pada PHP `8.5`)
+- PHP `>= 8.4` (diuji pada PHP `8.5`)
 - Yii Framework `^2.0.55`
 - Database dan komponen `db` Yii yang aktif
 - Komponen `authManager` Yii (`yii\rbac\DbManager` atau `yii\rbac\PhpManager`)
@@ -101,6 +101,33 @@ Dengan route standar Yii, halaman modul tersedia di:
 - `/index.php?r=admin/menu` — menu, jika tabel menu tersedia
 
 Jika menggunakan pretty URL, route yang sama dapat diakses sebagai `/admin`, `/admin/role`, dan seterusnya.
+
+## Keamanan (SECURITY)
+
+> **Penting:** `Helper::filter()`, `Helper::filterActionColumn()`, dan `MenuHelper::getAssignedMenu()` **bukan kontrol akses**. Ketiganya hanya menyembunyikan/memfilter elemen UI (menu, tombol) berdasarkan hasil pengecekan route. Endpoint di balik elemen tersebut tetap dapat diakses langsung melalui URL oleh siapa pun yang mengetahui route-nya — menyembunyikan menu tidak pernah menggantikan penegakan akses di sisi server.
+
+Semua endpoint (termasuk halaman modul admin ini) **WAJIB** dilindungi dengan memasang behavior `as access` pada konfigurasi aplikasi, modul, atau controller yang bersangkutan:
+
+```php
+'as access' => [
+    'class' => 'mdm\admin\components\AccessControl',
+    'allowActions' => [
+        'site/login',   // route publik — sesuaikan dengan aplikasi Anda
+        'site/error',
+    ],
+],
+```
+
+Tanpa `as access`, tidak ada komponen yang memeriksa izin RBAC, sehingga halaman admin dan route lain terbuka untuk siapa pun yang sudah login (atau bahkan tamu, tergantung konfigurasi).
+
+### Peringatan opsi `onlyRegisteredRoute`
+
+Opsi `mdm.admin.configs.onlyRegisteredRoute` (default `false`) mengubah perilaku AccessControl secara signifikan:
+
+- Jika `true`, hanya route yang **terdaftar** pada tabel auth item/route yang diperiksa. Route yang **tidak terdaftar — termasuk route yang belum sempat di-scan/ditambahkan — dianggap SAH dan otomatis diizinkan (allow-by-default)**. Endpoint sensitif yang baru ditambahkan bisa langsung diakses tanpa izin apa pun selama route-nya belum terdaftar.
+- Jika `false` (default dan **disarankan**), route yang tidak terdaftar **ditolak** oleh AccessControl kecuali permission-nya diberikan secara eksplisit; route publik cukup didaftarkan pada `allowActions`.
+
+Jangan mengaktifkan `onlyRegisteredRoute` hanya untuk menghindari repot mendaftarkan route — akibatnya adalah celah akses yang tidak terlihat. Pertahankan `false` dan daftarkan permission/route secara eksplisit.
 
 ## Penyesuaian user model
 

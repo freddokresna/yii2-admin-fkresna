@@ -90,7 +90,17 @@ class Configs extends \mdm\admin\BaseObject
     public $userRolePageSize = 100;
 
     /**
-     * @var boolean If true then AccessControl only check if route are registered.
+     * @var boolean If true then AccessControl (and Helper::checkRoute) only checks routes
+     * that are registered in the auth item/route table. Routes that are NOT registered are
+     * skipped by the check and therefore ALLOWED by default (allow-by-default), including
+     * routes that have not been scanned/added yet. Whenever the registered route list is
+     * incomplete, unregistered (potentially sensitive) endpoints become reachable without
+     * any permission.
+     *
+     * Recommended value: false (the default), so unregistered routes are DENIED unless the
+     * permission is assigned explicitly; grant access to public routes via the `allowActions`
+     * property of the `as access` AccessControl behavior instead. Enabling this option does
+     * NOT turn UI filtering (Helper::filter / menu hiding) into real access control.
      */
     public $onlyRegisteredRoute = false;
 

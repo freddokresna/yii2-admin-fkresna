@@ -178,10 +178,11 @@ class ItemController extends Controller
     /**
      * Type of Auth Item.
      * @return integer
+     * @throws NotSupportedException subclass must override this method
      */
     public function getType()
     {
-        
+        throw new NotSupportedException(get_class($this) . ' does not support getType().');
     }
 
     /**

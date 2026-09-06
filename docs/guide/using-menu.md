@@ -6,7 +6,7 @@ role and permision then return menus that he has access.
 
 ```php
 use mdm\admin\components\MenuHelper;
-use yii\bootstrap\Nav;
+use yii\bootstrap5\Nav;
 
 echo Nav::widget([
     'items' => MenuHelper::getAssignedMenu(Yii::$app->user->id)
