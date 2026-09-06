@@ -170,6 +170,17 @@ composer install
 vendor/bin/codecept run -c tests/codeception.yml unit
 ```
 
+Suite unit memakai `yii\rbac\DbManager` sungguhan (validasi `AuthItem` + save,
+filter menu `Helper::filter`) sehingga butuh database — tetapi **default-nya
+SQLite** (`@runtime/mdm_admin_test.sqlite`, tabel RBAC dibuat ulang otomatis
+oleh test), jadi perintah di atas langsung hijau di lingkungan bersih **tanpa
+server database apa pun**. Untuk memakai MySQL/PostgreSQL lokal atau di CI,
+set env `MDM_ADMIN_TEST_DB=mysql` (atau `pgsql`), buat database-nya dengan
+`tests/codeception/bin/create-test-db.sh` (kredensial dibaca dari env, tidak
+ada secret di-hardcode di repo), lalu jalankan perintah yang sama. Kredensial
+koneksi dapat dioverride lewat `tests/codeception/config/db-local.php`
+(gitignored). Detail di `tests/README.md`.
+
 > Catatan (2026-09): suite `functional` & `acceptance` gaya codeception-v2 yang
 > bergantung `yiisoft/yii2-codeception` (abandoned) telah dihapus karena tidak
 > dapat dijalankan pada codeception ^5. Uji perilaku web/RBAC sebaiknya

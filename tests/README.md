@@ -1,127 +1,46 @@
-This directory contains various tests for the basic application.
+# Test (unit suite Codeception)
 
-Tests in `codeception` directory are developed with [Codeception PHP Testing Framework](http://codeception.com/).
+Konten di direktori ini adalah test-infra untuk modul ini (bukan app mandiri).
+Suite yang aktif saat ini hanya **unit**; suite `functional`/`acceptance` gaya
+codeception-v2 sudah dihapus (bergantung `yiisoft/yii2-codeception` yang
+abandoned dan tidak jalan di Codeception ^5).
 
-After creating the basic application, follow these steps to prepare for the tests:
+## Menjalankan suite
 
-1. Install Codeception if it's not yet installed:
+Dari root repository (bukan dari direktori ini):
 
-   ```
-   composer global require "codeception/codeception=2.0.*"
-   composer global require "codeception/specify=*"
-   composer global require "codeception/verify=*"
-   ```
-
-   If you've never used Composer for global packages run `composer global status`. It should output:
-
-   ```
-   Changed current directory to <directory>
-   ```
-
-  Then add `<directory>/vendor/bin` to you `PATH` environment variable. Now we're able to use `codecept` from command
-  line globally.
-
-2. Install faker extension by running the following from template root directory where `composer.json` is:
-
-   ```
-   composer require --dev "yiisoft/yii2-faker:*"
-   ```
-
-3. Create `yii2_basic_tests` database and update it by applying migrations (you may skip this step if you do not have created any migrations yet):
-
-   ```
-   codeception/bin/yii migrate
-   ```
-
-   The command needs to be run in the `tests` directory.
-   The database configuration can be found at `tests/codeception/config/config.php`.
-
-4. Build the test suites:
-
-   ```
-   codecept build
-   ```
-
-5. In order to be able to run acceptance tests you need to start a webserver. The simplest way is to use PHP built in
-webserver. In the `web` directory execute the following:
-
-   ```
-   php -S localhost:8080
-   ```
-
-6. Now you can run the tests with the following commands:
-
-   ```
-   # run all available tests
-   codecept run
-   # run acceptance tests
-   codecept run acceptance
-   # run functional tests
-   codecept run functional
-   # run unit tests
-   codecept run unit
-   ```
-
-Fixtures Default Configuration
-------------------------------
-The `fixture` commands refer to the following `ActiveFixture` configuration by default:
-
-- Fixtures path: `@tests/unit/fixtures`
-- Fixtures data path: `@tests/unit/fixtures/data`
-- Template files path: `@tests/unit/templates/fixtures`
-- Namespace: `tests\unit\fixtures`
-
-Where `@tests` refers to `@mdm/admin/tests/codeception`.
-
-Code coverage support
----------------------
-
-By default, code coverage is disabled in `codeception.yml` configuration file, you should uncomment needed rows to be able
-to collect code coverage. You can run your tests and collect coverage with the following command:
-
-```
-#collect coverage for all tests
-codecept run --coverage-html --coverage-xml
-
-#collect coverage only for unit tests
-codecept run unit --coverage-html --coverage-xml
-
-#collect coverage for unit and functional tests
-codecept run functional,unit --coverage-html --coverage-xml
+```bash
+vendor/bin/codecept run -c tests/codeception.yml unit
 ```
 
-You can see code coverage output under the `tests/_output` directory.
+## Database test
 
-###Remote code coverage
+Unit test memakai RBAC sungguhan (`yii\rbac\DbManager`), jadi butuh database:
 
-When you run your tests not in the same process where code coverage is collected, then you should uncomment `remote` option and its
-related options, to be able to collect code coverage correctly. To setup remote code coverage you should follow [instructions](http://codeception.com/docs/11-Codecoverage)
-from codeception site.
+- **Default: SQLite** — file `tests/runtime/mdm_admin_test.sqlite` (alias
+  `@runtime/mdm_admin_test.sqlite`). Tabel RBAC (`auth_rule`, `auth_item`,
+  `auth_item_child`, `auth_assignment`) dibuat ulang otomatis sebelum tiap test
+  dari `vendor/yiisoft/yii2/rbac/migrations/schema-sqlite.sql` via
+  `tests/codeception/unit/DbTestCase.php`. Tidak perlu provisioning apa pun.
+- **Opsional: MySQL / PostgreSQL** — set env `MDM_ADMIN_TEST_DB=mysql` atau
+  `pgsql`, lalu buat database kosong `mdm_admin_test`:
+  `tests/codeception/bin/create-test-db.sh mysql` (kredensial root & user test
+  lewat env: `DB_ROOT_PASS`, `TEST_DB_USER`, `TEST_DB_PASS`, ... — lihat header
+  skrip; **jangan hardcode secret di repo**). Tabel RBAC tetap dibuat otomatis
+  oleh test.
+- Kredensial koneksi dioverride tanpa menyentuh `config/db.php` dengan membuat
+  `config/db-local.php` (gitignored) yang mengubah `$databases` / `$driver`.
 
-1. install `Codeception c3` remote support `composer require "codeception/c3:*"`;
+Konfigurasi suite: `codeception.yml`, `codeception/config/{config,unit,db}.php`,
+bootstrap `codeception/unit/_bootstrap.php`.
 
-2. copy `c3.php` file under your `web` directory;
+## Cakupan test
 
-3. include `c3.php` file in your `index-test.php` file before application run, so it can catch needed requests.
+| File | Menguji |
+| --- | --- |
+| `unit/models/ItemTest.php` | `mdm\admin\models\AuthItem`: validasi required & unik (role/permission satu namespace), save ke DbManager |
+| `unit/models/RouteTest.php` | `mdm\admin\models\Route`: normalisasi nama permission (`/prefix`), daftar route modul admin dari scanner controller |
+| `unit/components/HelperTest.php` | `mdm\admin\components\Helper::filter()`: filter menu rekursif berdasarkan route yang di-assign ke user |
 
-4. edit `c3.php` to update config file path (~ line 55) with `$config_file = realpath(__DIR__ . '/../tests/codeception.yml');`
-
-Configuration options that are used by remote code coverage:
-
-- c3_url: url pointing to entry script that includes `c3.php` file, so `Codeception` will be able to produce code coverage;
-- remote: whether to enable remote code coverage or not;
-- remote_config: path to the `codeception.yml` configuration file, from the directory where `c3.php` file is located. This is needed
-  so that `Codeception` can create itself instance and collect code coverage correctly.
-
-By default `c3_url` and `remote_config` setup correctly, you only need to copy and include `c3.php` file in your `index-test.php`
-
-After that you should be able to collect code coverage from tests that run through `PhpBrowser` or `WebDriver` with same command
-as for other tests:
-
-```
-#collect coverage from remote
-codecept run acceptance --coverage-html --coverage-xml
-```
-
-Please refer to [Codeception tutorial](http://codeception.com/docs/01-Introduction) for
-more details about writing and running acceptance, functional and unit tests.
+`ItemTest` & `HelperTest` menurun dari `DbTestCase` (butuh DB test, default
+sqlite); `RouteTest` murni tanpa DB.

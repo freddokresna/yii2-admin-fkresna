@@ -10,16 +10,19 @@ return [
     'aliases' => [
         '@mdm/admin' => dirname(dirname(dirname(__DIR__))),
     ],
+    // Test-only tuning of the mdm\admin Configs singleton. `strict => false`
+    // lets Helper::filter()/checkRoute() work with a plain user-id argument
+    // (non-strict menu-filtering path) instead of a yii\web\User object, which
+    // keeps the menu-filter unit test independent of the web user component.
+    'params' => [
+        'mdm.admin.configs' => [
+            'strict' => false,
+        ],
+    ],
     'modules' => [
         'admin' => [
-            'class' => 'mdm\admin\Module',
+            'class' => 'mdm\\admin\\Module',
         ]
-    ],
-    'controllerMap' => [
-        'fixture' => [
-            'class' => 'yii\console\controllers\FixtureController',
-            'namespace' => 'tests\codeception\fixtures',
-        ],
     ],
     'components' => [
         'db' => require(__DIR__ . '/db.php'),
@@ -30,15 +33,15 @@ return [
             'showScriptName' => true,
         ],
         'authManager' => [
-            'class' => 'yii\rbac\DbManager'
+            'class' => 'yii\\rbac\\DbManager'
         ],
         'cache' => [
-            'class' => 'yii\caching\DummyCache',
+            'class' => 'yii\\caching\\DummyCache',
         ],
         'i18n' => [
             'translations' => [
                 'rbac-admin' => [
-                    'class' => 'yii\i18n\PhpMessageSource',
+                    'class' => 'yii\\i18n\\PhpMessageSource',
                     'sourceLanguage' => 'en',
                     'basePath' => '@mdm/admin/messages'
                 ]
