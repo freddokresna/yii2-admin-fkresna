@@ -31,3 +31,9 @@ jobs:
         run: |
           find . -name '*.php' -not -path './vendor/*' -print0 \
             | xargs -0 -n1 php -l
+
+      # F24-4: the unit suite (SQLite, zero-provision — RBAC schema is
+      # recreated per test by DbTestCase) used to be green on every wave
+      # commit but was never executed here, so regressions could slip through.
+      - name: Run unit tests (Codeception, SQLite)
+        run: vendor/bin/codecept run -c tests/codeception.yml unit

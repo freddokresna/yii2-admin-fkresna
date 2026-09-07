@@ -35,6 +35,9 @@
             "tests\\": "tests/"
         }
     },
+    "scripts": {
+        "test": "codecept run -c tests/codeception.yml unit"
+    },
     "repositories": [
         {
             "type": "composer",

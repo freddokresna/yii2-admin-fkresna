@@ -79,9 +79,10 @@ class Login extends Model
                 // fixed dummy hash so the request duration is indistinguishable
                 // from the wrong-password path (no timing-based enumeration).
                 Yii::$app->security->validatePassword($this->password, static::DUMMY_PASSWORD_HASH);
-                $this->addError($attribute, 'Incorrect username or password.');
+                // F24-3: user-facing error — translated via rbac-admin (en/id).
+                $this->addError($attribute, Yii::t('rbac-admin', 'Incorrect username or password.'));
             } elseif (!$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, Yii::t('rbac-admin', 'Incorrect username or password.'));
             }
         }
     }

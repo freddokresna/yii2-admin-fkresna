@@ -224,7 +224,11 @@ class UserController extends Controller
                     sleep($delay);
                 }
             }
-            Yii::$app->getSession()->setFlash('success', 'Jika email terdaftar, tautan reset password telah dikirim.');
+            // F24-3: user-facing flash — translate via rbac-admin catalog
+            // (en/id; see messages/). Generic on purpose: the same message is
+            // shown whether or not the email exists (anti user-enumeration,
+            // F20-4) and for failed sends alike.
+            Yii::$app->getSession()->setFlash('success', Yii::t('rbac-admin', 'If your email is registered, the password reset link has been sent.'));
 
             return $this->goHome();
         }
@@ -247,7 +251,7 @@ class UserController extends Controller
         }
 
         if ($model->load(Yii::$app->getRequest()->post()) && $model->validate() && $model->resetPassword()) {
-            Yii::$app->getSession()->setFlash('success', 'New password was saved.');
+            Yii::$app->getSession()->setFlash('success', Yii::t('rbac-admin', 'New password was saved.'));
 
             return $this->goHome();
         }

@@ -88,4 +88,8 @@ return [
     'You can not delete your own account.' => 'Anda tidak dapat menghapus akun Anda sendiri.',
     'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" tidak ditambahkan: nama route lebih dari 64 karakter.',
     'Too many failed login attempts. Please try again in {minutes} minute(s).' => 'Terlalu banyak percobaan login yang gagal. Silakan coba lagi dalam {minutes} menit.',
+    'Username may not contain control characters, line breaks or separators.' => 'Nama pengguna tidak boleh mengandung karakter kontrol, baris baru, atau pemisah.',
+    'If your email is registered, the password reset link has been sent.' => 'Jika email terdaftar, tautan reset password telah dikirim.',
+    'New password was saved.' => 'Kata sandi baru telah disimpan.',
+    'Incorrect username or password.' => 'Nama pengguna atau kata sandi salah.',
 ];

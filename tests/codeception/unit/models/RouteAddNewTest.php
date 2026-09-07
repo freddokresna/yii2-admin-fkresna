@@ -74,4 +74,61 @@ class RouteAddNewTest extends DbTestCase
         $this->assertSame([$long], $model->invalidRoutes);
         $this->assertCount(0, $auth->getPermissions());
     }
+
+    /**
+     * F24-1: the rejection warning in addNew() interpolates the
+     * attacker-supplied route name (POST via RouteController::actionCreate/
+     * actionAssign). A route string longer than 64 bytes carrying an embedded
+     * CRLF (audit payload: 63 x 'a' + CRLF + 'FORGED') must NOT be able to
+     * forge extra log rows — capture the real warning and verify the emitted
+     * log line stays single-line while the payload is still identifiable
+     * (same rule family as F22-2/F23-1, Helper::sanitizeForLog).
+     */
+    public function testOverlongRouteWithCrlfIsRejectedAndLoggedSanitized()
+    {
+        $target = new class extends \yii\log\Target {
+            public $captured = [];
+
+            public function export()
+            {
+                $this->captured = array_merge($this->captured, $this->messages);
+            }
+        };
+
+        Yii::getLogger()->flush(true); // drain anything queued by earlier tests
+        Yii::$app->getLog()->targets = [$target];
+
+        $auth = Yii::$app->authManager;
+        $model = new Route();
+        // 63 bytes + CRLF + 15 bytes + CRLF + 1 byte -> permission name
+        // ('/' . route) is 82 bytes, far over the varchar(64) limit; the
+        // embedded newlines are the log-injection payload.
+        $evil = str_repeat('a', 63) . "\r\nFORGED-LOG-ROW\r\nb";
+        try {
+            $model->addNew([$evil]);
+            Yii::getLogger()->flush(true);
+        } finally {
+            Yii::$app->getLog()->targets = [];
+        }
+
+        // rejected up-front, reported for UI feedback, nothing persisted
+        $this->assertSame([$evil], $model->invalidRoutes, 'rejected route must be reported for UI feedback');
+        $this->assertCount(0, $auth->getPermissions(), 'nothing may be persisted for an over-long route');
+
+        $lines = [];
+        foreach ($target->captured as $message) {
+            if (isset($message[2]) && $message[2] === 'mdm\admin\models\Route::addNew'
+                && strpos($message[0], 'Route "') === 0) {
+                $lines[] = $message[0];
+            }
+        }
+        $this->assertCount(1, $lines, 'exactly one rejection warning expected');
+
+        // the value is still present and identifiable, but normalized…
+        $this->assertStringContainsString('FORGED-LOG-ROW', $lines[0]);
+        $this->assertStringContainsString('not added: permission name longer than 64 characters.', $lines[0]);
+        // …and the log line contains no raw line break at all (CWE-117)
+        $this->assertStringNotContainsString("\n", $lines[0]);
+        $this->assertStringNotContainsString("\r", $lines[0]);
+    }
 }

@@ -96,4 +96,8 @@ return [
     'You can not delete your own account.' => 'You can not delete your own account.',
     'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" was not added: the route name is longer than 64 characters.',
     'Too many failed login attempts. Please try again in {minutes} minute(s).' => 'Too many failed login attempts. Please try again in {minutes} minute(s).',
+    'Username may not contain control characters, line breaks or separators.' => 'Username may not contain control characters, line breaks or separators.',
+    'If your email is registered, the password reset link has been sent.' => 'If your email is registered, the password reset link has been sent.',
+    'New password was saved.' => 'New password was saved.',
+    'Incorrect username or password.' => 'Incorrect username or password.',
 ];

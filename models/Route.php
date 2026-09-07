@@ -62,7 +62,12 @@ class Route extends \mdm\admin\BaseObject
                 $action = count($r) > 1 ? '/' . trim((string)$r[0], '/') : null;
                 if (mb_strlen($permissionName, '8bit') > 64 || ($action !== null && mb_strlen($action, '8bit') > 64)) {
                     $this->invalidRoutes[] = $route;
-                    Yii::warning('Route "' . $route . '" not added: permission name longer than 64 characters.', __METHOD__);
+                    // F24-1: the route string is user-supplied (POST via
+                    // RouteController::actionCreate/actionAssign) — sanitize
+                    // before logging so an over-long route carrying CR/LF
+                    // cannot forge extra log rows (CWE-117; same rule as
+                    // F22-2/F23-1 — see Login.php:216 / UserController.php:217).
+                    Yii::warning('Route "' . Helper::sanitizeForLog($route) . '" not added: permission name longer than 64 characters.', __METHOD__);
                     continue;
                 }
                 $item = $manager->createPermission($permissionName);

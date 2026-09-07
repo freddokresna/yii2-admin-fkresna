@@ -39,7 +39,9 @@ class Signup extends Model
             // also rejects invalid UTF-8 outright (preg_match fails → error).
             ['username', 'match',
                 'pattern' => '/^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+$/u',
-                'message' => 'Username may not contain control characters, line breaks or separators.',
+                // F24-2: keep the message in the rbac-admin catalog (en/id)
+                // like every other rule message instead of a hardcoded string.
+                'message' => Yii::t('rbac-admin', 'Username may not contain control characters, line breaks or separators.'),
             ],
 
             ['email', 'filter', 'filter' => 'trim'],
