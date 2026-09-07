@@ -72,4 +72,59 @@ class HelperTest extends DbTestCase
         // a user without any assignment sees nothing
         $this->assertSame([], Helper::filter($items, '2'));
     }
+
+    /**
+     * F22-2: Helper::sanitizeForLog() must collapse newlines/CRs/control
+     * characters and repeated whitespace to single spaces so a user-supplied
+     * identifier interpolated into a log line can never forge extra rows.
+     */
+    public function testSanitizeForLog()
+    {
+        // classic log-injection payloads (CRLF, lone LF/CR, tabs)
+        $this->assertSame(
+            'alice bob',
+            Helper::sanitizeForLog("alice\r\nbob"),
+            'CRLF must collapse to one space'
+        );
+        $this->assertSame(
+            'alice bob',
+            Helper::sanitizeForLog("alice\nbob"),
+            'LF must collapse to one space'
+        );
+        $this->assertSame(
+            'alice bob',
+            Helper::sanitizeForLog("alice\rbob"),
+            'CR must collapse to one space'
+        );
+
+        // repeated whitespace is collapsed and the result is trimmed
+        $this->assertSame(
+            'ali evil ce',
+            Helper::sanitizeForLog("  ali \t  evil\n\n  ce  "),
+            'whitespace runs collapse, edges are trimmed'
+        );
+
+        // escape/control characters (terminal/ANSI injection) are neutralized
+        $this->assertSame(
+            'a [2Jb',
+            Helper::sanitizeForLog("a\x1b[2Jb"),
+            'ESC must not survive into the log line'
+        );
+
+        // Unicode line/paragraph separators are neutralized too
+        $this->assertSame(
+            'a b c',
+            Helper::sanitizeForLog("a\u{2028}b\u{2029}c"),
+            'U+2028/U+2029 must not survive into the log line'
+        );
+
+        // clean values pass through untouched; scalars are cast to string
+        $this->assertSame('alice', Helper::sanitizeForLog('alice'));
+        $this->assertSame('203.0.113.7', Helper::sanitizeForLog('203.0.113.7'));
+        $this->assertSame('42', Helper::sanitizeForLog(42));
+        $this->assertSame('', Helper::sanitizeForLog(null));
+
+        // the sanitized output never contains a line break
+        $this->assertStringNotContainsString("\n", Helper::sanitizeForLog("x\n y \r\n z"));
+    }
 }

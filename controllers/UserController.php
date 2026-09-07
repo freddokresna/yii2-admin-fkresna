@@ -3,6 +3,7 @@
 namespace mdm\admin\controllers;
 
 use mdm\admin\components\Configs;
+use mdm\admin\components\Helper;
 use mdm\admin\components\UserStatus;
 use mdm\admin\models\form\ChangePassword;
 use mdm\admin\models\form\Login;
@@ -211,10 +212,13 @@ class UserController extends Controller
                 // selalu flash sukses generik. Kegagalan (email tak terdaftar /
                 // akun nonaktif / mailer error) hanya dicatat di log.
                 if (!$model->sendEmail()) {
-                    Yii::info('Password reset request tanpa email terkirim: ' . $model->email, 'auth');
+                    // F22-2: email/IP are user-supplied — sanitize before
+                    // logging so embedded newlines cannot forge log rows.
+                    Yii::info('Password reset request tanpa email terkirim: ' . Helper::sanitizeForLog($model->email), 'auth');
                 }
             } else {
-                Yii::warning('Password reset request diblokir oleh rate limit: ' . $model->email . ' dari IP ' . $ip, 'auth');
+                Yii::warning('Password reset request diblokir oleh rate limit: ' . Helper::sanitizeForLog($model->email)
+                    . ' dari IP ' . Helper::sanitizeForLog($ip), 'auth');
                 $delay = PasswordResetRequest::throttleDelay();
                 if ($delay > 0) {
                     sleep($delay);

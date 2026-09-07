@@ -27,7 +27,11 @@ class Signup extends Model
             ['username', 'filter', 'filter' => 'trim'],
             ['username', 'required'],
             ['username', 'unique', 'targetClass' => $class, 'message' => 'This username has already been taken.'],
-            ['username', 'string', 'min' => 2, 'max' => 255],
+            // F22-1: max must match the DB column (user.username varchar(32),
+            // migrations/m160312_050000_create_user.php) — the old 255 let a
+            // 33..255-char username pass validation and then explode in a DB
+            // error on save() under strict SQL modes (PG/MySQL).
+            ['username', 'string', 'min' => 2, 'max' => User::USERNAME_MAX_LENGTH],
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],

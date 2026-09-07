@@ -5,6 +5,7 @@ namespace mdm\admin\models\form;
 use Yii;
 use yii\base\Model;
 use yii\helpers\ArrayHelper;
+use mdm\admin\components\Helper;
 use mdm\admin\models\User;
 
 /**
@@ -210,7 +211,10 @@ class Login extends Model
             // so the window is never slid/extended by continued hammering.
             if ($cache->get($lockKey) === false) {
                 $cache->set($lockKey, time() + $this->lockoutSeconds(), $this->lockoutSeconds());
-                Yii::warning('Lockout login sementara: username "' . $this->username . '" dari IP ' . $ip
+                // F22-2: username/IP are user-supplied — sanitize before logging
+                // so embedded newlines cannot forge extra log rows.
+                Yii::warning('Lockout login sementara: username "' . Helper::sanitizeForLog($this->username)
+                    . '" dari IP ' . Helper::sanitizeForLog($ip)
                     . ' setelah ' . $count . ' percobaan gagal (F21-1).', 'auth');
             }
         }

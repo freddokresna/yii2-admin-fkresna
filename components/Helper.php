@@ -250,4 +250,24 @@ class Helper
             TagDependency::invalidate(Configs::cache(), Configs::CACHE_TAG);
         }
     }
+
+    /**
+     * Normalizes a user-supplied value for safe interpolation into a SINGLE
+     * log line: every run of whitespace and control characters (newlines/CRs
+     * included, plus Unicode line/paragraph separators U+2028/U+2029 and
+     * escape/other C0 controls) is collapsed to one space and the result is
+     * trimmed. A crafted username/email/IP with embedded newlines could
+     * otherwise forge extra log rows / corrupt log parsing (audit QA wave-22
+     * F22-2 — used by the login-lockout and password-reset log statements).
+     *
+     * @param mixed $value the raw user-supplied value.
+     * @return string single-line, whitespace-collapsed string (never null;
+     * on invalid UTF-8 the original string is returned as a fallback).
+     */
+    public static function sanitizeForLog($value)
+    {
+        $s = (string) $value;
+        $clean = preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $s);
+        return trim($clean !== null ? $clean : $s);
+    }
 }

@@ -274,4 +274,56 @@ class LoginRateLimitTest extends DbTestCase
         $ok->rememberMe = false;
         $this->assertTrue($ok->login($ip), 'correct login must still succeed when the cache stores nothing');
     }
+
+    public function testLockoutWarningSanitizesUsernameBeforeLogging()
+    {
+        // F22-2: the lockout warning interpolates the attacker-supplied
+        // username. A username carrying newlines must NOT be able to forge
+        // extra log rows — capture the real 'auth' warning and verify the log
+        // line stays single-line while the value is still readable.
+        $target = new class extends \yii\log\Target {
+            public $captured = [];
+
+            public function export()
+            {
+                $this->captured = array_merge($this->captured, $this->messages);
+            }
+        };
+
+        Yii::getLogger()->flush(true); // drain anything queued by earlier tests
+        Yii::$app->getLog()->targets = [$target];
+
+        $ip = '203.0.113.50';
+        // 33+ chars / embedded CRLF: classic log-injection payload
+        $evil = "ali\r\nEVIL-FORGED-LOG-LINE\r\nce";
+        try {
+            for ($i = 1; $i <= Login::MAX_FAILED_ATTEMPTS; $i++) {
+                $form = $this->attemptLogin($evil, 'wrong-password', $ip);
+                $this->assertTrue($form->hasErrors('password'));
+            }
+            $probe = new Login();
+            $probe->username = $evil;
+            $this->assertNotFalse($probe->isLockedOut($ip), 'pair must be locked out');
+            Yii::getLogger()->flush(true);
+        } finally {
+            Yii::$app->getLog()->targets = [];
+        }
+
+        $lockoutLines = [];
+        foreach ($target->captured as $message) {
+            if (isset($message[2]) && $message[2] === 'auth'
+                && strpos($message[0], 'Lockout login sementara') === 0) {
+                $lockoutLines[] = $message[0];
+            }
+        }
+        $this->assertCount(1, $lockoutLines, 'exactly one lockout warning expected');
+        $line = $lockoutLines[0];
+
+        // the value is still present and identifiable, but normalized
+        $this->assertStringContainsString('EVIL-FORGED-LOG-LINE', $line);
+        $this->assertStringContainsString('ali EVIL-FORGED-LOG-LINE ce', $line);
+        // …and the log line contains no raw line break at all
+        $this->assertStringNotContainsString("\n", $line);
+        $this->assertStringNotContainsString("\r", $line);
+    }
 }

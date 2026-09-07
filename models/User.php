@@ -33,6 +33,15 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_ACTIVE = 10;
 
     /**
+     * Maximum username length — mirrors the `user.username` column definition
+     * `string(32)` in migrations/m160312_050000_create_user.php (varchar(32) in
+     * every schema-*.sql). Forms that validate a username MUST NOT allow more
+     * than this: a longer value passes a 255-char form rule but then dies in a
+     * DB error on save() under strict SQL modes (audit QA wave-22 F22-1).
+     */
+    const USERNAME_MAX_LENGTH = 32;
+
+    /**
      * @inheritdoc
      */
     public static function tableName()
