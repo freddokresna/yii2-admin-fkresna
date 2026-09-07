@@ -67,7 +67,7 @@ class BizRule extends \yii\base\Model
     }
 
     /**
-     * Validate class exists
+     * Validate class exists and is instantiable without constructor arguments
      */
     public function classExists()
     {
@@ -80,6 +80,12 @@ class BizRule extends \yii\base\Model
             $message = Yii::t('rbac-admin', "'{class}' must extend from 'yii\rbac\Rule' or its child class", [
                     'class' => $this->className]);
             $this->addError('className', $message);
+            return;
+        }
+        // abstract / non-public-constructor classes pass class_exists() but blow
+        // up (Error/HTTP 500) the moment save() runs `new $class()`.
+        if (!(new \ReflectionClass($this->className))->isInstantiable()) {
+            $this->addError('className', Yii::t('rbac-admin', 'Rule class must be instantiable'));
         }
     }
 
@@ -129,7 +135,16 @@ class BizRule extends \yii\base\Model
             $class = $this->className;
             $oldName = null;
             if ($this->_item === null) {
-                $this->_item = new $class();
+                try {
+                    $this->_item = new $class();
+                } catch (\Throwable $e) {
+                    $this->addError('className', Yii::t('rbac-admin',
+                        "Failed to instantiate rule class '{class}': {reason}", [
+                            'class' => $class,
+                            'reason' => $e->getMessage(),
+                        ]));
+                    return false;
+                }
                 $isNew = true;
             } else {
                 $isNew = false;
@@ -140,7 +155,16 @@ class BizRule extends \yii\base\Model
                 // the loaded instance with `new $class()` and copy over the public
                 // properties that still exist on the new class (rule state/name).
                 if (get_class($this->_item) !== $class) {
-                    $newItem = new $class();
+                    try {
+                        $newItem = new $class();
+                    } catch (\Throwable $e) {
+                        $this->addError('className', Yii::t('rbac-admin',
+                            "Failed to instantiate rule class '{class}': {reason}", [
+                                'class' => $class,
+                                'reason' => $e->getMessage(),
+                            ]));
+                        return false;
+                    }
                     $copyable = array_flip(array_keys(get_object_vars($newItem)));
                     foreach (get_object_vars($this->_item) as $property => $value) {
                         if (isset($copyable[$property])) {

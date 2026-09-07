@@ -40,6 +40,39 @@ class BizRuleTestAllowRule extends Rule
 }
 
 /**
+ * ABSTRACT dummy rule: class_exists() and is_subclass_of() both pass, but the
+ * class can never be instantiated — `new` on it throws an Error (HTTP 500).
+ */
+abstract class BizRuleTestAbstractRule extends Rule
+{
+    public function execute($user, $item, $params)
+    {
+        return true;
+    }
+}
+
+/**
+ * Dummy rule whose constructor REQUIRES an argument: ReflectionClass reports
+ * it as instantiable, but `new $class()` (no args) throws an
+ * ArgumentCountError, which used to surface as an HTTP 500.
+ */
+class BizRuleTestCtorRule extends Rule
+{
+    /** @var string constructor-injected value */
+    public $token;
+
+    public function __construct($token)
+    {
+        $this->token = $token;
+    }
+
+    public function execute($user, $item, $params)
+    {
+        return true;
+    }
+}
+
+/**
  * BizRule (mdm\admin\models\BizRule) — rule CRUD through the authManager.
  *
  * Regression F11-1: on an EXISTING rule BizRule::save() only pushed the name
@@ -133,5 +166,75 @@ class BizRuleTest extends DbTestCase
         $this->assertSame('legacy-renamed', $renamed->name);
         $this->assertSame(5, $renamed->level, 'state must survive a plain rename');
         $this->assertNull($auth->getRule('legacy'));
+    }
+
+    /**
+     * Regression F12-1: an ABSTRACT rule class passes class_exists() but is not
+     * instantiable — save() must fail validation with an error on className
+     * instead of throwing an Error (HTTP 500) inside `new $class()`.
+     */
+    public function testSaveAbstractClassFailsValidationWithoutThrow()
+    {
+        $model = new BizRule(null);
+        $model->name = 'abstract-rule';
+        $model->className = BizRuleTestAbstractRule::class;
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('className'));
+        $this->assertStringContainsString(
+            'instantiable',
+            $model->getFirstError('className')
+        );
+        $this->assertNull(Yii::$app->authManager->getRule('abstract-rule'));
+    }
+
+    /**
+     * Regression F12-1: a class whose constructor REQUIRES arguments is reported
+     * instantiable by ReflectionClass, so validation passes — the
+     * ArgumentCountError raised by `new $class()` in save() (create path) must
+     * be caught and turned into an error, not a 500.
+     */
+    public function testCreateWithRequiredCtorArgReturnsFalseInsteadOf500()
+    {
+        $model = new BizRule(null);
+        $model->name = 'ctor-rule';
+        $model->className = BizRuleTestCtorRule::class;
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('className'));
+        $this->assertStringContainsString(
+            'Failed to instantiate',
+            $model->getFirstError('className')
+        );
+        $this->assertNull(Yii::$app->authManager->getRule('ctor-rule'));
+    }
+
+    /**
+     * Regression F12-1: same unconstructible-class guard on the update path
+     * (className switched to a ctor-required class): save() returns false with
+     * an error and the previously stored rule stays untouched.
+     */
+    public function testUpdateSwitchToUnconstructibleClassReturnsFalseWithoutThrow()
+    {
+        $auth = Yii::$app->authManager;
+
+        $old = new BizRuleTestDenyRule();
+        $old->name = 'legacy-ctor';
+        $auth->add($old);
+
+        $model = BizRule::find('legacy-ctor');
+        $this->assertNotNull($model);
+        $model->className = BizRuleTestCtorRule::class;
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('className'));
+        $this->assertStringContainsString(
+            'Failed to instantiate',
+            $model->getFirstError('className')
+        );
+
+        $rule = $auth->getRule('legacy-ctor');
+        $this->assertInstanceOf(BizRuleTestDenyRule::class, $rule);
+        $this->assertSame('legacy-ctor', $rule->name);
     }
 }
