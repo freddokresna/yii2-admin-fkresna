@@ -110,7 +110,26 @@ class MenuController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+
+        // F16-1: never delete a menu that still has children. The menu table
+        // has no FK/ON DELETE CASCADE: MySQL SET NULLs every child (silently
+        // flattening the tree) while SQLite keeps orphaned submenu rows —
+        // both leave the submenus dangling and unmanageable from the UI.
+        // Block with a clear error and require the operator to delete (or
+        // re-parent) the submenus first; the block is transitive, so the
+        // whole subtree is protected.
+        if ($model->getMenus()->count() > 0) {
+            Yii::$app->session->setFlash('error', Yii::t('rbac-admin',
+                'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.', [
+                    'menu' => $model->name,
+                    'count' => $model->getMenus()->count(),
+                ]));
+
+            return $this->redirect(['index']);
+        }
+
+        $model->delete();
         Helper::invalidate();
 
         return $this->redirect(['index']);

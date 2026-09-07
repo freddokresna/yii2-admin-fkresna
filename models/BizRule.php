@@ -141,10 +141,18 @@ class BizRule extends \yii\base\Model
             return 0;
         }
 
+        // F16-2: count through the auth manager's OWN connection
+        // ($authManager->db), never the default one. On a split-DB setup the
+        // authManager points at a different database than Yii::$app->db (the
+        // app DB may not even hold the RBAC tables), so the previous bare
+        // Query->count() (default connection) silently read the WRONG
+        // auth_item table and the guard let in-use rules be deleted. When
+        // the manager has no db (null), Query falls back to the default
+        // connection, i.e. the pre-split behaviour.
         return (int) (new Query())
             ->from($authManager->itemTable)
             ->where(['rule_name' => $this->name])
-            ->count();
+            ->count('*', $authManager->db);
     }
 
     /**

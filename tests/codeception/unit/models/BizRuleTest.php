@@ -5,6 +5,8 @@ namespace tests\codeception\unit\models;
 use mdm\admin\models\BizRule;
 use tests\codeception\unit\DbTestCase;
 use Yii;
+use yii\db\Connection;
+use yii\rbac\DbManager;
 use yii\rbac\Rule;
 
 /**
@@ -93,6 +95,11 @@ class BizRuleTestCtorRule extends Rule
  * Regression F15-1: isUsed()/usedCount() report auth_item.rule_name
  * references so RuleController::actionDelete can block removal of a rule
  * that is still in use (no silent FK SET NULL / no dangling rule_name).
+ *
+ * Regression F16-2: usedCount()/isUsed() must count through the auth
+ * manager's OWN db connection ($authManager->db). On a split-DB setup the
+ * authManager lives on a different database than Yii::$app->db, and the old
+ * bare Query->count() (default connection) read the WRONG auth_item table.
  *
  * Runs on the suite test DB (SQLite by default); the RBAC tables are
  * recreated empty by DbTestCase before every test.
@@ -452,5 +459,89 @@ class BizRuleTest extends DbTestCase
         $auth->remove($perm);
         $this->assertFalse(BizRule::find('referenced-rule')->isUsed());
         $this->assertSame(0, BizRule::find('referenced-rule')->usedCount());
+    }
+
+    /**
+     * Regression F16-2: usedCount()/isUsed() must read auth_item through the
+     * auth manager's OWN db connection ($authManager->db) — not through the
+     * default Yii::$app->db connection. On a split-DB setup the authManager
+     * points at a different database than the app DB (the app DB may not
+     * even hold the RBAC tables); the old bare Query->count() fell back to
+     * the default connection and silently counted the WRONG auth_item
+     * table, so the RuleController::actionDelete guard could let an in-use
+     * rule be deleted.
+     *
+     * Proof: the SAME rule name is referenced by 1 auth item in the main
+     * (app) DB and by 2 auth items in the split (auth) DB. While Configs
+     * points at the split manager, usedCount() must return 2 (auth DB), not
+     * 1 (app DB).
+     */
+    public function testUsedCountReadsAuthManagerDbOnSplitDbSetup()
+    {
+        $configs = \mdm\admin\components\Configs::instance();
+
+        // main (default) DB: rule 'split-rule' + 1 referencing permission
+        $mainAuth = Yii::$app->authManager;
+        $rule = new BizRuleTestDenyRule();
+        $rule->name = 'split-rule';
+        $mainAuth->add($rule);
+        $perm = $mainAuth->createPermission('perm-in-main-db');
+        $perm->ruleName = 'split-rule';
+        $mainAuth->add($perm);
+        $this->assertSame(1, BizRule::find('split-rule')->usedCount());
+
+        if (!extension_loaded('pdo_sqlite')) {
+            $this->markTestSkipped('pdo_sqlite not loaded; cannot build the split auth DB.');
+        }
+
+        // split auth DB: a SECOND sqlite file with its own RBAC schema
+        $splitFile = Yii::getAlias('@runtime/mdm_admin_split_' . uniqid() . '.sqlite');
+        $splitDb = new Connection(['dsn' => 'sqlite:' . $splitFile]);
+        $splitDb->open();
+        $this->applyRbacSchema($splitDb,
+            Yii::getAlias('@vendor/yiisoft/yii2/rbac/migrations/schema-sqlite.sql'));
+
+        $splitAuth = new DbManager(['db' => $splitDb]);
+        $rule = new BizRuleTestDenyRule();
+        $rule->name = 'split-rule';
+        $splitAuth->add($rule);
+        foreach (['perm-1-in-auth-db', 'perm-2-in-auth-db'] as $name) {
+            $perm = $splitAuth->createPermission($name);
+            $perm->ruleName = 'split-rule';
+            $splitAuth->add($perm);
+        }
+
+        // point Configs' authManager at the split manager: the guard must now
+        // count the auth DB (2), not the default app DB (1)
+        $originalAuthManager = $configs->authManager;
+        try {
+            $configs->authManager = $splitAuth;
+            $model = BizRule::find('split-rule');
+            $this->assertNotNull($model);
+            $this->assertSame(2, $model->usedCount());
+            $this->assertTrue($model->isUsed());
+        } finally {
+            $configs->authManager = $originalAuthManager;
+            $splitDb->close();
+            @unlink($splitFile);
+        }
+
+        // control: with the main (default-DB) manager restored the very same
+        // name counts 1 again — the count follows the authManager's db
+        $this->assertSame(1, BizRule::find('split-rule')->usedCount());
+    }
+
+    /**
+     * Apply an RBAC schema SQL file (statement by statement) on $db.
+     */
+    private function applyRbacSchema(Connection $db, $schemaFile)
+    {
+        $sql = preg_replace('~/\*.*?\*/~s', '', file_get_contents($schemaFile));
+        $sql = preg_replace('~^--.*$~m', '', $sql);
+        foreach (explode(';', $sql) as $statement) {
+            if (trim($statement) !== '') {
+                $db->createCommand($statement)->execute();
+            }
+        }
     }
 }

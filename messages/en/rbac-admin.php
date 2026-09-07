@@ -92,4 +92,5 @@ return [
     'Type of "{name}" can not be changed' => 'Type of "{name}" can not be changed',
     '{attribute} "{value}" has already been taken.' => '{attribute} "{value}" has already been taken.',
     'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.' => 'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.',
+    'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.' => 'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.',
 ];
