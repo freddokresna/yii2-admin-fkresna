@@ -26,7 +26,7 @@ class Signup extends Model
         return [
             ['username', 'filter', 'filter' => 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => $class, 'message' => 'This username has already been taken.'],
+            ['username', 'unique', 'targetClass' => $class, 'message' => Yii::t('rbac-admin', 'This username has already been taken.')],
             // F22-1: max must match the DB column (user.username varchar(32),
             // migrations/m160312_050000_create_user.php) — the old 255 let a
             // 33..255-char username pass validation and then explode in a DB
@@ -47,7 +47,7 @@ class Signup extends Model
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],
             ['email', 'email'],
-            ['email', 'unique', 'targetClass' => $class, 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => $class, 'message' => Yii::t('rbac-admin', 'This email address has already been taken.')],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],

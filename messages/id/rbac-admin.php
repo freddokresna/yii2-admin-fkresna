@@ -92,4 +92,7 @@ return [
     'If your email is registered, the password reset link has been sent.' => 'Jika email terdaftar, tautan reset password telah dikirim.',
     'New password was saved.' => 'Kata sandi baru telah disimpan.',
     'Incorrect username or password.' => 'Nama pengguna atau kata sandi salah.',
+    'This username has already been taken.' => 'Nama pengguna ini sudah digunakan.',
+    'This email address has already been taken.' => 'Alamat email ini sudah digunakan.',
+    'Incorrect old password.' => 'Kata sandi lama salah.',
 ];

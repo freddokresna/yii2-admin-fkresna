@@ -40,7 +40,7 @@ class ChangePassword extends Model
         /* @var $user User */
         $user = Yii::$app->user->identity;
         if (!$user || !$user->validatePassword($this->oldPassword)) {
-            $this->addError('oldPassword', 'Incorrect old password.');
+            $this->addError('oldPassword', Yii::t('rbac-admin', 'Incorrect old password.'));
         }
     }
 

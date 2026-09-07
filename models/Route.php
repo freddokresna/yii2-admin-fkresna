@@ -93,7 +93,13 @@ class Route extends \mdm\admin\BaseObject
                     $manager->add($item);
                 }
             } catch (Exception $exc) {
-                Yii::error($exc->getMessage(), __METHOD__);
+                // F26-1: PG/MySQL duplicate-key exceptions embed the offending
+                // value verbatim, so a route <= 63 bytes carrying CR/LF that
+                // trips a unique violation would forge extra log rows (CWE-117;
+                // SQLite never embeds the value, which is why this stayed
+                // invisible). Sanitize the whole message first — same rule as
+                // the F24-1 warning above (Helper::sanitizeForLog).
+                Yii::error(Helper::sanitizeForLog($exc->getMessage()), __METHOD__);
             }
         }
         Helper::invalidate();
@@ -118,7 +124,10 @@ class Route extends \mdm\admin\BaseObject
                 $item = $manager->createPermission($this->getPermissionName($route));
                 $manager->remove($item);
             } catch (Exception $exc) {
-                Yii::error($exc->getMessage(), __METHOD__);
+                // F26-1: same log-injection rule as addNew() above — a
+                // DB-driver exception message may embed the raw (CR/LF-
+                // carrying) route value; never write it to the log unsanitized.
+                Yii::error(Helper::sanitizeForLog($exc->getMessage()), __METHOD__);
             }
         }
         Helper::invalidate();

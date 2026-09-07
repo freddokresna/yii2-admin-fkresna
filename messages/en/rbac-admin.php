@@ -100,4 +100,7 @@ return [
     'If your email is registered, the password reset link has been sent.' => 'If your email is registered, the password reset link has been sent.',
     'New password was saved.' => 'New password was saved.',
     'Incorrect username or password.' => 'Incorrect username or password.',
+    'This username has already been taken.' => 'This username has already been taken.',
+    'This email address has already been taken.' => 'This email address has already been taken.',
+    'Incorrect old password.' => 'Incorrect old password.',
 ];

@@ -131,4 +131,85 @@ class RouteAddNewTest extends DbTestCase
         $this->assertStringNotContainsString("\n", $lines[0]);
         $this->assertStringNotContainsString("\r", $lines[0]);
     }
+
+    /**
+     * Wave-26 (P2): the catch-all in addNew() logged the RAW exception
+     * message. On PG/MySQL a duplicate INSERT for a route that PASSED the
+     * 64-byte guard (route <= 63 bytes) raises a unique-violation PDOException
+     * whose text EMBEDS the offending value — so re-adding a route carrying
+     * CR/LF forged extra log rows (CWE-117). SQLite's "UNIQUE constraint
+     * failed: auth_item.name" does not embed the value, which is why the
+     * real-DB path can never reproduce it; simulate the PG/MySQL-style
+     * message (mock manager whose add() throws it) and assert the emitted
+     * error log stays one single line with no raw CR/LF.
+     */
+    public function testCrlfBearingDuplicateExceptionIsLoggedAsSingleSanitizedLine()
+    {
+        $target = new class extends \yii\log\Target {
+            public $captured = [];
+
+            public function export()
+            {
+                $this->captured = array_merge($this->captured, $this->messages);
+            }
+        };
+
+        // <= 63 bytes with embedded CRLF -> permission name '/' + route is
+        // <= 64 bytes, so the F20-2 over-long guard does NOT reject it: the
+        // value reaches the DB INSERT where a duplicate-key error embeds it.
+        $evil = str_repeat('x', 40) . "\r\nFORGED\r\n" . str_repeat('y', 8);
+        $this->assertLessThanOrEqual(63, strlen($evil), 'payload must stay within the 64-byte permission-name budget');
+        $permissionName = '/' . $evil;
+        $this->assertLessThanOrEqual(64, mb_strlen($permissionName, '8bit'));
+
+        // Simulate the driver message the audit found (PG unique_violation /
+        // MySQL 1062): it quotes the offending key value verbatim — CR/LF and
+        // all. The real SQLite manager can never produce such a message.
+        $throwingManager = new class extends \yii\rbac\DbManager {
+            public function add($object)
+            {
+                throw new \Exception('SQLSTATE[23505]: Unique violation: 7 ERROR: '
+                    . 'duplicate key value violates unique constraint "auth_item_name_key" '
+                    . 'DETAIL: Key (name)=(' . $object->name . ') already exists.');
+            }
+        };
+
+        $configs = \mdm\admin\components\Configs::instance();
+        $realManager = $configs->authManager;
+        $this->assertInstanceOf(\yii\rbac\DbManager::class, $realManager);
+        $configs->authManager = $throwingManager;
+
+        Yii::getLogger()->flush(true); // drain anything queued by earlier tests
+        Yii::$app->getLog()->targets = [$target];
+
+        $model = new Route();
+        try {
+            $model->addNew([$evil]);
+            Yii::getLogger()->flush(true);
+        } finally {
+            Yii::$app->getLog()->targets = [];
+            $configs->authManager = $realManager; // restore singleton for later tests
+        }
+
+        // the payload was NOT caught by the over-long guard — it went down the
+        // real add() path and only the (simulated) DB exception stopped it
+        $this->assertSame([], $model->invalidRoutes, 'sub-64-byte route must not be treated as over-long');
+
+        $lines = [];
+        foreach ($target->captured as $message) {
+            if (isset($message[1], $message[2])
+                && $message[2] === 'mdm\admin\models\Route::addNew'
+                && ($message[1] & \yii\log\Logger::LEVEL_ERROR)) {
+                $lines[] = $message[0];
+            }
+        }
+        $this->assertCount(1, $lines, 'exactly one error log expected from the simulated duplicate-route exception');
+
+        // value still identifiable, error still readable…
+        $this->assertStringContainsString('FORGED', $lines[0]);
+        $this->assertStringContainsString('already exists', $lines[0]);
+        // …but the log line contains no raw line break at all (CWE-117)
+        $this->assertStringNotContainsString("\n", $lines[0]);
+        $this->assertStringNotContainsString("\r", $lines[0]);
+    }
 }
