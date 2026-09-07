@@ -65,6 +65,7 @@ class AuthItem extends Model
         return [
             [['ruleName'], 'checkRule'],
             [['type'], 'checkType'],
+            [['data'], 'checkDataJson'],
             [['name', 'type'], 'required'],
             [['name'], 'checkUnique', 'when' => function () {
                     return $this->isNewRecord || ($this->_item->name != $this->name);
@@ -142,6 +143,31 @@ class AuthItem extends Model
     {
         if ($this->_item !== null && (int) $this->type !== (int) $this->_item->type) {
             $this->addError('type', Yii::t('rbac-admin', 'Type of "{name}" can not be changed', ['name' => $this->_item->name]));
+        }
+    }
+
+    /**
+     * Check 'data' holds valid JSON when it is not empty.
+     *
+     * A malformed JSON payload used to reach save() where Json::decode()
+     * threw an uncaught InvalidArgumentException (HTTP 500) instead of being
+     * reported as a validation error on the form. Empty/null values remain
+     * allowed (they are persisted as null); non-string input (e.g. a posted
+     * array) is rejected as well so json_decode never receives a bad type.
+     */
+    public function checkDataJson()
+    {
+        if ($this->data === null || $this->data === '') {
+            return;
+        }
+        if (!is_string($this->data)) {
+            $this->addError('data', Yii::t('rbac-admin', 'Data must be a valid JSON string'));
+            return;
+        }
+        try {
+            Json::decode($this->data);
+        } catch (\Exception $e) {
+            $this->addError('data', Yii::t('rbac-admin', 'Data must be a valid JSON string'));
         }
     }
 

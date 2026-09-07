@@ -124,6 +124,50 @@ class ItemTest extends DbTestCase
         $this->assertTrue($model->save());
         $this->assertSame($ruleName, Yii::$app->authManager->getRole('ruled-role')->ruleName);
     }
+
+    public function testDataMustBeValidJson()
+    {
+        // malformed JSON must fail validation with an error on 'data' and
+        // save() must return false WITHOUT throwing (previously the uncaught
+        // InvalidArgumentException from Json::decode() in save() surfaced as
+        // an HTTP 500 instead of a validation error)
+        $model = new AuthItem();
+        $model->name = 'bad-json-role';
+        $model->type = Item::TYPE_ROLE;
+        $model->data = '{not valid json';
+        $this->assertFalse($model->validate());
+        $this->assertArrayHasKey('data', $model->getErrors());
+        $this->assertFalse($model->save());
+        $this->assertNull(Yii::$app->authManager->getRole('bad-json-role'));
+
+        // non-string payload (e.g. a posted array) is rejected too
+        $model = new AuthItem();
+        $model->name = 'array-json-role';
+        $model->type = Item::TYPE_ROLE;
+        $model->data = ['a' => 1];
+        $this->assertFalse($model->validate());
+        $this->assertArrayHasKey('data', $model->getErrors());
+        $this->assertFalse($model->save());
+        $this->assertNull(Yii::$app->authManager->getRole('array-json-role'));
+
+        // empty / null data stays allowed and is persisted
+        $model = new AuthItem();
+        $model->name = 'empty-json-role';
+        $model->type = Item::TYPE_ROLE;
+        $model->data = '';
+        $this->assertTrue($model->validate());
+        $this->assertTrue($model->save());
+        $this->assertNull(Yii::$app->authManager->getRole('empty-json-role')->data);
+
+        // valid JSON data is accepted and persisted decoded
+        $model = new AuthItem();
+        $model->name = 'valid-json-role';
+        $model->type = Item::TYPE_ROLE;
+        $model->data = '{"k":"v","n":1}';
+        $this->assertTrue($model->validate());
+        $this->assertTrue($model->save());
+        $this->assertSame(['k' => 'v', 'n' => 1], Yii::$app->authManager->getRole('valid-json-role')->data);
+    }
 }
 
 /**
