@@ -134,6 +134,21 @@ class BizRule extends \yii\base\Model
             } else {
                 $isNew = false;
                 $oldName = $this->_item->name;
+                // className changed on an existing rule: manager->update() stores
+                // whatever instance it is given (serialized into `data`), so the
+                // update must run against an instance of the NEW class. Replace
+                // the loaded instance with `new $class()` and copy over the public
+                // properties that still exist on the new class (rule state/name).
+                if (get_class($this->_item) !== $class) {
+                    $newItem = new $class();
+                    $copyable = array_flip(array_keys(get_object_vars($newItem)));
+                    foreach (get_object_vars($this->_item) as $property => $value) {
+                        if (isset($copyable[$property])) {
+                            $newItem->$property = $value;
+                        }
+                    }
+                    $this->_item = $newItem;
+                }
             }
             $this->_item->name = $this->name;
 
