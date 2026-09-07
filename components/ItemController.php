@@ -76,11 +76,18 @@ class ItemController extends Controller
     {
         $model = new AuthItem(null);
         $model->type = $this->type;
-        if ($model->load(Yii::$app->getRequest()->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->name]);
-        } else {
-            return $this->render('create', ['model' => $model]);
+        if ($model->load(Yii::$app->getRequest()->post())) {
+            // 'type' is not mass-assignable (see AuthItem::rules()) and the
+            // controller's own type is authoritative: re-assert it after load
+            // so a forged POST 'type' can never turn a role into a permission
+            // (or vice versa).
+            $model->type = $this->type;
+            if ($model->save()) {
+                return $this->redirect(['view', 'id' => $model->name]);
+            }
         }
+
+        return $this->render('create', ['model' => $model]);
     }
 
     /**

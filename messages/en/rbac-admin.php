@@ -88,4 +88,6 @@ return [
     'Rule "{value}" does not exists' => 'Rule "{value}" does not exists',
     'Unknown class \'{class}\'' => 'Unknown class \'{class}\'',
     '\'{class}\' must extend from \'yii\rbac\Rule\' or its child class' => '\'{class}\' must extend from \'yii\rbac\Rule\' or its child class',
+    'Unknown rule "{value}"' => 'Unknown rule "{value}"',
+    'Type of "{name}" can not be changed' => 'Type of "{name}" can not be changed',
 ];

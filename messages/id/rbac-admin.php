@@ -80,4 +80,6 @@ return [
     'Menu' => 'Menu',
     'Help' => 'Bantuan',
     'Application' => 'Aplikasi',
+    'Unknown rule "{value}"' => 'Rule "{value}" tidak dikenal',
+    'Type of "{name}" can not be changed' => 'Tipe dari "{name}" tidak dapat diubah',
 ];

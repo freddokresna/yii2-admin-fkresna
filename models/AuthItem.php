@@ -11,7 +11,6 @@ use yii\base\Model;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\rbac\Item;
-use yii\rbac\Rule;
 
 /**
  * This is the model class for table "tbl_auth_item".
@@ -65,6 +64,7 @@ class AuthItem extends Model
     {
         return [
             [['ruleName'], 'checkRule'],
+            [['type'], 'checkType'],
             [['name', 'type'], 'required'],
             [['name'], 'checkUnique', 'when' => function () {
                     return $this->isNewRecord || ($this->_item->name != $this->name);
@@ -73,6 +73,26 @@ class AuthItem extends Model
             [['description', 'data', 'ruleName'], 'default'],
             [['name'], 'string', 'max' => 64],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * `type` stays validated (required/integer/checkType) but is never
+     * mass-assignable: it is fixed by the owning controller
+     * (RoleController / PermissionController), so a forged POST 'type' can not
+     * flip a role into a permission. The leading '!' marks it unsafe for
+     * [[load()]] while [[activeAttributes()]] keeps it validated.
+     */
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $default = $scenarios[self::SCENARIO_DEFAULT];
+        $default = array_values(array_diff($default, ['type']));
+        $default[] = '!type';
+        $scenarios[self::SCENARIO_DEFAULT] = $default;
+
+        return $scenarios;
     }
 
     /**
@@ -93,23 +113,35 @@ class AuthItem extends Model
     }
 
     /**
-     * Check for rule
+     * Check the chosen rule is already registered with the auth manager.
+     *
+     * The rule name must reference a rule that already exists in the auth
+     * manager (Configs::authManager()->getRule()); rules are created only
+     * through RuleController (BizRule) or another registered mechanism. A
+     * posted class name is never instantiated nor auto-registered here, which
+     * prevents arbitrary class instantiation and bypassing the authorization
+     * needed to manage rules via an AuthItem form.
      */
     public function checkRule()
     {
         $name = $this->ruleName;
-        if (!Configs::authManager()->getRule($name)) {
-            try {
-                $rule = Yii::createObject($name);
-                if ($rule instanceof Rule) {
-                    $rule->name = $name;
-                    Configs::authManager()->add($rule);
-                } else {
-                    $this->addError('ruleName', Yii::t('rbac-admin', 'Invalid rule "{value}"', ['value' => $name]));
-                }
-            } catch (\Exception $exc) {
-                $this->addError('ruleName', Yii::t('rbac-admin', 'Rule "{value}" does not exists', ['value' => $name]));
-            }
+        if ($name === null || $name === '') {
+            return;
+        }
+        if (Configs::authManager()->getRule($name) === null) {
+            $this->addError('ruleName', Yii::t('rbac-admin', 'Unknown rule "{value}"', ['value' => $name]));
+        }
+    }
+
+    /**
+     * Assert the item type is consistent: an existing item's type is
+     * immutable (the type is fixed by the owning controller, see
+     * RoleController/PermissionController and ItemController::actionCreate()).
+     */
+    public function checkType()
+    {
+        if ($this->_item !== null && (int) $this->type !== (int) $this->_item->type) {
+            $this->addError('type', Yii::t('rbac-admin', 'Type of "{name}" can not be changed', ['name' => $this->_item->name]));
         }
     }
 
