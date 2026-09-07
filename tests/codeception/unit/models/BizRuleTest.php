@@ -83,6 +83,13 @@ class BizRuleTestCtorRule extends Rule
  * copies the still-valid public properties and updates THAT instance, so the
  * new rule class becomes active immediately.
  *
+ * Regression F13-1: creating a rule with a name that already exists — or
+ * renaming an existing rule onto another rule's name — used to reach
+ * DbManager::add()/update() and throw an IntegrityException (HTTP 500) on the
+ * UNIQUE(auth_rule.name) constraint. checkUniqueName() (mirroring
+ * AuthItem::checkUnique) now rejects the duplicate during validation, so
+ * save() returns false with an error on 'name' and nothing is written.
+ *
  * Runs on the suite test DB (SQLite by default); the RBAC tables are
  * recreated empty by DbTestCase before every test.
  */
@@ -236,5 +243,103 @@ class BizRuleTest extends DbTestCase
         $rule = $auth->getRule('legacy-ctor');
         $this->assertInstanceOf(BizRuleTestDenyRule::class, $rule);
         $this->assertSame('legacy-ctor', $rule->name);
+    }
+
+    /**
+     * Regression F13-1: creating a rule whose name already exists must fail
+     * validation with an error on 'name' — not throw an IntegrityException
+     * (HTTP 500) from DbManager::add() on the UNIQUE(auth_rule.name)
+     * constraint.
+     */
+    public function testCreateDuplicateNameFailsValidationWithoutThrow()
+    {
+        $auth = Yii::$app->authManager;
+
+        $existing = new BizRuleTestDenyRule();
+        $existing->name = 'taken';
+        $auth->add($existing);
+
+        $model = new BizRule(null);
+        $model->name = 'taken';
+        $model->className = BizRuleTestDenyRule::class;
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('name'));
+        $this->assertStringContainsString(
+            'has already been taken',
+            $model->getFirstError('name')
+        );
+
+        // original rule untouched, no second rule with the same name appears
+        $rule = $auth->getRule('taken');
+        $this->assertInstanceOf(BizRuleTestDenyRule::class, $rule);
+        $this->assertNull($auth->getRule('taken-dup'));
+    }
+
+    /**
+     * Regression F13-1: renaming an existing rule onto the name of another
+     * registered rule must fail validation with an error on 'name' instead of
+     * throwing an IntegrityException (HTTP 500) from DbManager::update().
+     * Both original rules stay intact (no partial rename).
+     */
+    public function testRenameToExistingRuleNameFailsValidationWithoutThrow()
+    {
+        $auth = Yii::$app->authManager;
+
+        $keep = new BizRuleTestDenyRule();
+        $keep->name = 'keep';
+        $keep->level = 3;
+        $auth->add($keep);
+
+        $target = new BizRuleTestDenyRule();
+        $target->name = 'target';
+        $target->level = 9;
+        $auth->add($target);
+
+        // rename 'keep' onto the taken name 'target'
+        $model = BizRule::find('keep');
+        $this->assertNotNull($model);
+        $model->name = 'target';
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('name'));
+        $this->assertStringContainsString(
+            'has already been taken',
+            $model->getFirstError('name')
+        );
+
+        // nothing changed: 'keep' still exists under its own name (state
+        // intact), 'target' still exists and was not overwritten
+        $stillKeep = $auth->getRule('keep');
+        $this->assertInstanceOf(BizRuleTestDenyRule::class, $stillKeep);
+        $this->assertSame(3, $stillKeep->level);
+
+        $stillTarget = $auth->getRule('target');
+        $this->assertInstanceOf(BizRuleTestDenyRule::class, $stillTarget);
+        $this->assertSame(9, $stillTarget->level);
+    }
+
+    /**
+     * Regression F13-1: an update that does not change the name (same-name
+     * save) must not trip the uniqueness check — the when-clause skips it.
+     */
+    public function testUpdateKeepingOwnNamePassesUniquenessCheck()
+    {
+        $auth = Yii::$app->authManager;
+
+        $rule = new BizRuleTestDenyRule();
+        $rule->name = 'own-name';
+        $auth->add($rule);
+
+        $model = BizRule::find('own-name');
+        $this->assertNotNull($model);
+        $model->className = BizRuleTestAllowRule::class;
+
+        $this->assertTrue($model->save());
+        $this->assertFalse($model->hasErrors('name'));
+        $this->assertInstanceOf(
+            BizRuleTestAllowRule::class,
+            $auth->getRule('own-name')
+        );
     }
 }

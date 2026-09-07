@@ -62,7 +62,10 @@ class BizRule extends \yii\base\Model
         return [
             [['name', 'className'], 'required'],
             [['className'], 'string'],
-            [['className'], 'classExists']
+            [['className'], 'classExists'],
+            [['name'], 'checkUniqueName', 'when' => function () {
+                    return $this->isNewRecord || ($this->_item->name != $this->name);
+                }],
         ];
     }
 
@@ -86,6 +89,29 @@ class BizRule extends \yii\base\Model
         // up (Error/HTTP 500) the moment save() runs `new $class()`.
         if (!(new \ReflectionClass($this->className))->isInstantiable()) {
             $this->addError('className', Yii::t('rbac-admin', 'Rule class must be instantiable'));
+        }
+    }
+
+    /**
+     * Check rule name is unique among registered rules.
+     *
+     * Mirrors AuthItem::checkUnique. Creating a rule whose name is already
+     * registered — or renaming an existing rule onto a name owned by another
+     * rule — must fail validation with an error on 'name' instead of letting
+     * DbManager::add()/update() throw an IntegrityException (HTTP 500) on the
+     * UNIQUE(auth_rule.name) constraint.
+     */
+    public function checkUniqueName()
+    {
+        $authManager = Configs::authManager();
+        $value = $this->name;
+        if ($authManager->getRule($value) !== null) {
+            $message = Yii::t('rbac-admin', '{attribute} "{value}" has already been taken.');
+            $params = [
+                'attribute' => $this->getAttributeLabel('name'),
+                'value' => $value,
+            ];
+            $this->addError('name', Yii::$app->getI18n()->format($message, $params, Yii::$app->language));
         }
     }
 

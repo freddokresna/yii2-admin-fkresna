@@ -82,4 +82,5 @@ return [
     'Application' => 'Aplikasi',
     'Unknown rule "{value}"' => 'Rule "{value}" tidak dikenal',
     'Type of "{name}" can not be changed' => 'Tipe dari "{name}" tidak dapat diubah',
+    '{attribute} "{value}" has already been taken.' => '{attribute} "{value}" sudah digunakan.',
 ];
