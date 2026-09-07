@@ -32,6 +32,15 @@ class Signup extends Model
             // 33..255-char username pass validation and then explode in a DB
             // error on save() under strict SQL modes (PG/MySQL).
             ['username', 'string', 'min' => 2, 'max' => User::USERNAME_MAX_LENGTH],
+            // F23-2: forbid control characters and Unicode separators. A
+            // username with an embedded CR/LF or other \p{Cc}/\p{Cf} control
+            // (or a U+2028/U+2029 separator) could otherwise be registered and
+            // later forge log rows / corrupt UIs (CWE-117). The /u pattern
+            // also rejects invalid UTF-8 outright (preg_match fails → error).
+            ['username', 'match',
+                'pattern' => '/^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+$/u',
+                'message' => 'Username may not contain control characters, line breaks or separators.',
+            ],
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],

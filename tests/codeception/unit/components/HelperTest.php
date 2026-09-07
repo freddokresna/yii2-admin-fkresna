@@ -127,4 +127,35 @@ class HelperTest extends DbTestCase
         // the sanitized output never contains a line break
         $this->assertStringNotContainsString("\n", Helper::sanitizeForLog("x\n y \r\n z"));
     }
+
+    /**
+     * F23-1: invalid UTF-8 must NEVER fall back to the raw string. The /u
+     * pattern cannot run on malformed input, and the old code then returned
+     * the original bytes — so "\xFF\r\nFORGED" (the %FF%0D%0AFORGED payload)
+     * smuggled CRLF into the log line (CWE-117). Sanitization must scrub the
+     * invalid bytes and still collapse CR/LF.
+     */
+    public function testSanitizeForLogInvalidUtf8NeverReturnsRaw()
+    {
+        // the audit payload: invalid byte 0xFF followed by a CRLF forgery
+        $payload = "\xFF\r\nFORGED";
+        $this->assertFalse((bool) @preg_match('//u', $payload), 'payload must really be invalid UTF-8');
+
+        $out = Helper::sanitizeForLog($payload);
+        $this->assertSame('FORGED', $out, 'invalid \xFF byte is dropped and CRLF collapses');
+        $this->assertStringNotContainsString("\n", $out, 'no LF may survive invalid UTF-8');
+        $this->assertStringNotContainsString("\r", $out, 'no CR may survive invalid UTF-8');
+
+        // CRLF-only forgery after a malformed lead byte
+        $out2 = Helper::sanitizeForLog("evil\xC3\x28\r\nadmin");
+        $this->assertStringNotContainsString("\n", $out2);
+        $this->assertStringNotContainsString("\r", $out2);
+        $this->assertStringNotContainsString("\x00", $out2);
+
+        // invalid bytes alone (no CRLF) still yield a clean, lossy result
+        $this->assertSame('alice', Helper::sanitizeForLog("ali\xFFce\xFE"));
+
+        // sanity: the raw string must never be returned verbatim
+        $this->assertNotSame($payload, Helper::sanitizeForLog($payload));
+    }
 }

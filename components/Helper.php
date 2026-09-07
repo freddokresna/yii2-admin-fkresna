@@ -261,13 +261,56 @@ class Helper
      * F22-2 — used by the login-lockout and password-reset log statements).
      *
      * @param mixed $value the raw user-supplied value.
-     * @return string single-line, whitespace-collapsed string (never null;
-     * on invalid UTF-8 the original string is returned as a fallback).
+     * @return string single-line, whitespace-collapsed string — never null
+     * and NEVER the raw input: even invalid UTF-8 (where the /u pattern
+     * cannot run) is re-encoded/byte-scrubbed so no CR/LF can survive.
      */
     public static function sanitizeForLog($value)
     {
         $s = (string) $value;
-        $clean = preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $s);
-        return trim($clean !== null ? $clean : $s);
+
+        // Fast path (valid UTF-8, plain ASCII included): collapse every
+        // whitespace / control / format / line-or-paragraph-separator run to
+        // one space and trim. Neutralizes CRLF, lone CR/LF, ANSI escapes and
+        // U+2028/U+2029.
+        $clean = @preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $s);
+        if ($clean !== null) {
+            return trim($clean);
+        }
+
+        // Invalid UTF-8: the /u pattern refuses to run. The old code then fell
+        // back to the RAW bytes, so a crafted "\xFF\r\nFORGED" smuggled CRLF
+        // into the log line (CWE-117 log injection, audit QA wave-23 F23-1).
+        // Re-encode with iconv //IGNORE (drops the malformed \xFF bytes) and
+        // run the same collapse — clean for every realistic payload.
+        $utf8 = @iconv('UTF-8', 'UTF-8//IGNORE', $s);
+        if ($utf8 !== false) {
+            $clean = @preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $utf8);
+            if ($clean !== null) {
+                return trim($clean);
+            }
+        }
+
+        // Last resort (iconv missing/undecodable): manual byte pass that keeps
+        // only printable ASCII and turns every other byte (C0 controls, DEL,
+        // C1 controls, stray high bytes) into a space. The output is
+        // guaranteed single-line ASCII — never a raw control byte.
+        $out = '';
+        $pendingSpace = false;
+        $len = strlen($s);
+        for ($i = 0; $i < $len; $i++) {
+            $ord = ord($s[$i]);
+            if ($ord >= 0x20 && $ord <= 0x7E) {
+                if ($pendingSpace) {
+                    $out .= ' ';
+                    $pendingSpace = false;
+                }
+                $out .= $s[$i];
+            } else {
+                $pendingSpace = true;
+            }
+        }
+
+        return trim($out);
     }
 }

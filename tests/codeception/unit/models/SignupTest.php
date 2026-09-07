@@ -102,4 +102,61 @@ class SignupTest extends DbTestCase
         $this->assertSame($max, $user->username);
         $this->assertNotNull(User::findByUsername($max), 'saved user must be findable by username');
     }
+
+    /**
+     * F23-2: username rule forbids control characters and Unicode
+     * separators (CWE-117). A registered name like "alice\r\nbob" would later
+     * forge log rows wherever the username is interpolated; invalid UTF-8
+     * (e.g. 0xFF) must be rejected too instead of being stored verbatim.
+     */
+    public function testUsernameWithControlCharactersIsRejected()
+    {
+        $bad = [
+            'CRLF injection' => "alice\r\nbob",
+            'lone LF' => "ali\nce",
+            'lone CR' => "ali\rce",
+            'tab' => "ali\tce",
+            'NUL' => "ali\x00ce",
+            'ESC/ANSI' => "ali\x1bce",
+            'DEL' => "ali\x7fce",
+            'U+2028 line separator' => "ali\u{2028}ce",
+            'U+2029 paragraph separator' => "ali\u{2029}ce",
+            'invalid UTF-8 0xFF' => "\xFFevil",
+        ];
+
+        foreach ($bad as $label => $username) {
+            $form = new Signup();
+            $form->username = $username;
+            $form->email = 'bob-' . md5($label) . '@example.com';
+            $form->password = 'secret123';
+            $form->retypePassword = 'secret123';
+
+            $this->assertFalse($form->validate(), "[$label] username must not validate");
+            $this->assertTrue($form->hasErrors('username'), "[$label] error must be on username");
+            $this->assertStringContainsString(
+                'control characters',
+                $form->getFirstError('username'),
+                "[$label] error must come from the F23-2 match rule"
+            );
+            $this->assertNull($form->signup(), "[$label] signup() must not write a user");
+            $this->assertNull(
+                User::findByUsername($username),
+                "[$label] no user with a control/separator username may be persisted"
+            );
+        }
+    }
+
+    public function testPrintableUnicodeUsernameStillAccepted()
+    {
+        // sanity: normal printable usernames still work after the F23-2 rule
+        $form = new Signup();
+        $form->username = 'josé_runner-2';
+        $form->email = 'unicode-ok@example.com';
+        $form->password = 'secret123';
+        $form->retypePassword = 'secret123';
+
+        $user = $form->signup();
+        $this->assertNotNull($user, 'printable UTF-8 username must sign up');
+        $this->assertSame('josé_runner-2', $user->username);
+    }
 }
