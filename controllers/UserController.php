@@ -150,7 +150,9 @@ class UserController extends Controller
         }
 
         $model = new Login();
-        if ($model->load(Yii::$app->getRequest()->post()) && $model->login()) {
+        // F21-1: pass the client IP so failed attempts are throttled per
+        // IP+username pair (cache counter; 5 gagal -> lockout 15 menit).
+        if ($model->load(Yii::$app->getRequest()->post()) && $model->login(Yii::$app->getRequest()->getUserIP())) {
             return $this->goBack();
         } else {
             return $this->render('login', [

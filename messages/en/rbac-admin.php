@@ -95,4 +95,5 @@ return [
     'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.' => 'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.',
     'You can not delete your own account.' => 'You can not delete your own account.',
     'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" was not added: the route name is longer than 64 characters.',
+    'Too many failed login attempts. Please try again in {minutes} minute(s).' => 'Too many failed login attempts. Please try again in {minutes} minute(s).',
 ];

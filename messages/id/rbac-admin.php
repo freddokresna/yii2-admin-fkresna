@@ -87,4 +87,5 @@ return [
     'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.' => 'Menu "{menu}" masih memiliki {count} submenu. Hapus submenu-nya terlebih dahulu.',
     'You can not delete your own account.' => 'Anda tidak dapat menghapus akun Anda sendiri.',
     'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" tidak ditambahkan: nama route lebih dari 64 karakter.',
+    'Too many failed login attempts. Please try again in {minutes} minute(s).' => 'Terlalu banyak percobaan login yang gagal. Silakan coba lagi dalam {minutes} menit.',
 ];
