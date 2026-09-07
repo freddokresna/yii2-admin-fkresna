@@ -36,6 +36,7 @@ function search(target) {
     var groups = {
         role: [$('<optgroup label="Roles">'), false],
         permission: [$('<optgroup label="Permission">'), false],
+        route: [$('<optgroup label="Routes">'), false],
     };
     $.each(_opts.items[target], function (name, group) {
         if (name.indexOf(q) >= 0) {

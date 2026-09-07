@@ -99,8 +99,17 @@ class Assignment extends \mdm\admin\BaseObject
 
         $assigned = [];
         foreach ($manager->getAssignments($this->id) as $item) {
-            $assigned[$item->roleName] = $available[$item->roleName];
-            unset($available[$item->roleName]);
+            if (array_key_exists($item->roleName, $available)) {
+                $assigned[$item->roleName] = $available[$item->roleName];
+                unset($available[$item->roleName]);
+            } else {
+                // a user may hold a direct assignment to a route permission
+                // (name starts with '/'), which is never part of $available;
+                // keep it in the assigned pool typed as 'route' instead of
+                // failing on the missing key (undefined-key warning became an
+                // ErrorException/HTTP 500 under the web error handler)
+                $assigned[$item->roleName] = 'route';
+            }
         }
 
         ksort($available);
