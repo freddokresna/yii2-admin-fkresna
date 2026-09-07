@@ -106,6 +106,22 @@ class RuleController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
+
+        // F15-1: never remove a rule that auth_item rows still reference via
+        // rule_name. On a strict DB the FK (ON DELETE SET NULL) silently
+        // detaches the rule from every item; on SQLite the dangling rule_name
+        // survives and executeRule() throws "Rule not found" (HTTP 500).
+        // Block with a clear error instead of deleting.
+        if ($model->isUsed()) {
+            Yii::$app->session->setFlash('error', Yii::t('rbac-admin',
+                'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.', [
+                    'rule' => $model->name,
+                    'count' => $model->usedCount(),
+                ]));
+
+            return $this->redirect(['index']);
+        }
+
         Configs::authManager()->remove($model->item);
         Helper::invalidate();
 

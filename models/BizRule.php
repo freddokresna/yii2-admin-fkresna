@@ -3,6 +3,7 @@
 namespace mdm\admin\models;
 
 use Yii;
+use yii\db\Query;
 use yii\rbac\Rule;
 use mdm\admin\components\Configs;
 
@@ -117,6 +118,42 @@ class BizRule extends \yii\base\Model
             ];
             $this->addError('name', Yii::$app->getI18n()->format($message, $params, Yii::$app->language));
         }
+    }
+
+    /**
+     * Count auth items (auth_item rows) that still reference this rule via
+     * rule_name.
+     *
+     * A rule referenced by auth_item rows must not be removed: on a strict DB
+     * the FK (auth_item.rule_name -> auth_rule.name, ON DELETE SET NULL)
+     * silently detaches the rule from every item, while on SQLite (no FK
+     * enforcement) the dangling rule_name survives and executeRule() later
+     * throws "Rule not found" (HTTP 500). RuleController::actionDelete blocks
+     * deletion while any reference exists.
+     *
+     * @return int number of auth items referencing this rule (0 when the
+     * auth manager is not a DbManager — nothing to check)
+     */
+    public function usedCount()
+    {
+        $authManager = Configs::authManager();
+        if (!$authManager instanceof \yii\rbac\DbManager) {
+            return 0;
+        }
+
+        return (int) (new Query())
+            ->from($authManager->itemTable)
+            ->where(['rule_name' => $this->name])
+            ->count();
+    }
+
+    /**
+     * Check whether any auth item still references this rule.
+     * @return bool
+     */
+    public function isUsed()
+    {
+        return $this->usedCount() > 0;
     }
 
     /**

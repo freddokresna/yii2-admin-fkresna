@@ -90,6 +90,10 @@ class BizRuleTestCtorRule extends Rule
  * AuthItem::checkUnique) now rejects the duplicate during validation, so
  * save() returns false with an error on 'name' and nothing is written.
  *
+ * Regression F15-1: isUsed()/usedCount() report auth_item.rule_name
+ * references so RuleController::actionDelete can block removal of a rule
+ * that is still in use (no silent FK SET NULL / no dangling rule_name).
+ *
  * Runs on the suite test DB (SQLite by default); the RBAC tables are
  * recreated empty by DbTestCase before every test.
  */
@@ -408,5 +412,45 @@ class BizRuleTest extends DbTestCase
 
         $this->assertFalse($blank->save());
         $this->assertTrue($blank->hasErrors('name'));
+    }
+
+    /**
+     * Regression F15-1: a rule that auth_item rows still reference via
+     * rule_name must be reported as used — RuleController::actionDelete
+     * blocks on that, so deleting can never silently SET NULL the reference
+     * (strict-DB FK) or leave a dangling rule_name that makes executeRule()
+     * throw "Rule not found" (HTTP 500) later.
+     */
+    public function testIsUsedDetectsAuthItemReferences()
+    {
+        $auth = Yii::$app->authManager;
+
+        $referenced = new BizRuleTestDenyRule();
+        $referenced->name = 'referenced-rule';
+        $auth->add($referenced);
+
+        $unused = new BizRuleTestDenyRule();
+        $unused->name = 'unused-rule';
+        $auth->add($unused);
+
+        // no auth item references it yet
+        $model = BizRule::find('referenced-rule');
+        $this->assertNotNull($model);
+        $this->assertFalse($model->isUsed());
+        $this->assertSame(0, $model->usedCount());
+
+        // bind the rule to a permission -> the rule becomes used
+        $perm = $auth->createPermission('updatePost');
+        $perm->ruleName = 'referenced-rule';
+        $auth->add($perm);
+
+        $this->assertTrue(BizRule::find('referenced-rule')->isUsed());
+        $this->assertSame(1, BizRule::find('referenced-rule')->usedCount());
+        $this->assertFalse(BizRule::find('unused-rule')->isUsed());
+
+        // dropping the permission releases the rule again
+        $auth->remove($perm);
+        $this->assertFalse(BizRule::find('referenced-rule')->isUsed());
+        $this->assertSame(0, BizRule::find('referenced-rule')->usedCount());
     }
 }

@@ -22,6 +22,13 @@ use Yii;
  * extension's schema (migrations/schema-sqlite.sql), because Menu is an
  * ActiveRecord whose 'parent_name' in-rule queries the table on every
  * validate().
+ *
+ * Regression F15-2: menu.parent is an int FK to menu.id, but nothing server-
+ * side validated it — a crafted POST with a non-numeric parent or an id that
+ * matches no menu row used to pass (filterParent only ran on update) and the
+ * row was persisted as an orphan (SQLite) or threw an IntegrityException/
+ * HTTP 500 on strict servers that enforce the FK. 'integer' + 'exist' rules
+ * now reject both during validation, and filterParent also runs on create.
  */
 class MenuTest extends DbTestCase
 {
@@ -76,5 +83,90 @@ class MenuTest extends DbTestCase
         $this->assertFalse($model->hasErrors('name'));
         $this->assertTrue($model->save());
         $this->assertSame(1, (int) Menu::find()->where(['name' => $name128])->count());
+    }
+
+    /**
+     * Regression F15-2: a parent id that matches no menu row used to pass
+     * validation (filterParent only ran on update and silently walked up to
+     * NULL), then the row was persisted as an orphan (SQLite) or threw an
+     * IntegrityException/500 on strict servers. The 'exist' rule must reject
+     * it during validation: save false, error on 'parent', nothing written.
+     */
+    public function testParentWithUnknownIdFailsValidationWithoutSave()
+    {
+        $root = new Menu();
+        $root->name = 'root';
+        $this->assertTrue($root->save());
+
+        $child = new Menu();
+        $child->name = 'child';
+        $child->parent = 999999;
+
+        $this->assertFalse($child->validate());
+        $this->assertTrue($child->hasErrors('parent'));
+        $this->assertStringContainsString('not found', $child->getFirstError('parent'));
+        $this->assertFalse($child->save());
+        $this->assertSame(1, (int) Menu::find()->count(), 'no orphan row may be written');
+    }
+
+    /**
+     * Regression F15-2: a non-numeric parent (crafted POST, e.g. 'abc') used
+     * to be stored as-is and blow up later. The 'integer' rule must reject it
+     * during validation with an error on 'parent' (no 500, no write).
+     */
+    public function testParentNonNumericFailsValidationWithoutSave()
+    {
+        $child = new Menu();
+        $child->name = 'child';
+        $child->parent = 'not-a-number';
+
+        $this->assertFalse($child->validate());
+        $this->assertTrue($child->hasErrors('parent'));
+        $this->assertStringContainsString('integer', $child->getFirstError('parent'));
+        $this->assertFalse($child->save());
+        $this->assertSame(0, (int) Menu::find()->count());
+    }
+
+    /**
+     * Regression F15-2 (positive control): a parent id that DOES exist must
+     * still validate and save — on create too, where filterParent now also
+     * runs and must stay silent for an acyclic chain.
+     */
+    public function testCreateWithExistingParentStillSaves()
+    {
+        $root = new Menu();
+        $root->name = 'root';
+        $this->assertTrue($root->save());
+
+        $child = new Menu();
+        $child->name = 'child';
+        $child->parent = $root->id;
+
+        $errors = implode(' | ', $child->getFirstErrors());
+        $this->assertTrue($child->validate(), $errors);
+        $this->assertFalse($child->hasErrors('parent'));
+        $this->assertFalse($child->hasErrors('parent_name'));
+        $this->assertTrue($child->save());
+        $this->assertSame(2, (int) Menu::find()->count());
+    }
+
+    /**
+     * Regression F15-2 (positive control): the menu form posts parent='' for
+     * a top-level menu (no autocomplete selection); the 'default' filter
+     * nulls it first, so the 'integer'/'exist' rules (skipOnEmpty) must not
+     * reject a top-level create.
+     */
+    public function testTopLevelMenuWithEmptyParentStillSaves()
+    {
+        $menu = new Menu();
+        $menu->name = 'top';
+        $menu->parent = '';
+
+        $errors = implode(' | ', $menu->getFirstErrors());
+        $this->assertTrue($menu->validate(), $errors);
+        $this->assertTrue($menu->save());
+
+        $saved = Menu::find()->one();
+        $this->assertNull($saved->parent);
     }
 }

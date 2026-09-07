@@ -91,4 +91,5 @@ return [
     'Unknown rule "{value}"' => 'Unknown rule "{value}"',
     'Type of "{name}" can not be changed' => 'Type of "{name}" can not be changed',
     '{attribute} "{value}" has already been taken.' => '{attribute} "{value}" has already been taken.',
+    'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.' => 'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.',
 ];

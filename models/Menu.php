@@ -61,9 +61,20 @@ class Menu extends \yii\db\ActiveRecord
                 'range' => static::find()->select(['name'])->column(),
                 'message' => 'Menu "{value}" not found.'],
             [['parent', 'route', 'data', 'order'], 'default'],
-            [['parent'], 'filterParent', 'when' => function() {
-                return !$this->isNewRecord;
-            }],
+            // F15-2: menu.parent is an int FK to menu.id. SQLite does not
+            // enforce the column type nor the FK, so a bogus POST (non-numeric
+            // parent, or an id that matches no menu row) used to be persisted
+            // as an orphan row — and blew up with an IntegrityException
+            // (HTTP 500) on strict servers that DO enforce the FK. 'integer'
+            // rejects junk input, 'exist' rejects ids without a menu row, and
+            // filterParent (loop detection) now also runs on create so no save
+            // path can bypass it.
+            [['parent'], 'integer'],
+            [['parent'], 'exist',
+                'targetClass' => Menu::class,
+                'targetAttribute' => 'id',
+                'message' => 'Menu "{value}" not found.'],
+            [['parent'], 'filterParent'],
             [['order'], 'integer'],
             [['route'], 'in',
                 'range' => static::getSavedRoutes(),
