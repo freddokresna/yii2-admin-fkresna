@@ -342,4 +342,71 @@ class BizRuleTest extends DbTestCase
             $auth->getRule('own-name')
         );
     }
+
+    /**
+     * Regression F14-1: auth_rule.name is varchar(64) in the DB schema, but
+     * SQLite does not enforce VARCHAR length — a 65+ char name used to pass
+     * validation, get written to the DB and only blow up later on a strict
+     * (MySQL/PgSQL) server. The 'string'/'max' => 64 rule must reject it
+     * during validation with an error on 'name' (save false, nothing written).
+     */
+    public function testNameLongerThan64CharsFailsValidationWithoutSave()
+    {
+        $name65 = str_repeat('n', 65);
+
+        $model = new BizRule(null);
+        $model->name = $name65;
+        $model->className = BizRuleTestDenyRule::class;
+
+        $this->assertFalse($model->save());
+        $this->assertTrue($model->hasErrors('name'));
+        $this->assertStringContainsString('at most 64', $model->getFirstError('name'));
+        $this->assertNull(Yii::$app->authManager->getRule($name65));
+    }
+
+    /**
+     * Regression F14-1: a 64-char name is the longest one allowed by
+     * auth_rule.name and must still validate and save.
+     */
+    public function testNameOfExactly64CharsStillValidates()
+    {
+        $name64 = str_repeat('n', 64);
+
+        $model = new BizRule(null);
+        $model->name = $name64;
+        $model->className = BizRuleTestDenyRule::class;
+
+        $this->assertTrue($model->save());
+        $rule = Yii::$app->authManager->getRule($name64);
+        $this->assertInstanceOf(BizRuleTestDenyRule::class, $rule);
+        $this->assertSame($name64, $rule->name);
+    }
+
+    /**
+     * Regression F14-1: the 'name' trim filter runs before validation and the
+     * uniqueness check — a name padded with whitespace is stored trimmed (not
+     * space-padded), and a whitespace-only name trims down to '' and fails
+     * 'required' instead of creating a rule with a blank/spacey name.
+     */
+    public function testNameIsTrimmedBeforeValidation()
+    {
+        $model = new BizRule(null);
+        $model->name = '  trimmed-rule  ';
+        $model->className = BizRuleTestDenyRule::class;
+
+        $this->assertTrue($model->save());
+        $this->assertInstanceOf(
+            BizRuleTestDenyRule::class,
+            Yii::$app->authManager->getRule('trimmed-rule')
+        );
+        $this->assertNull(Yii::$app->authManager->getRule('  trimmed-rule  '));
+
+        // whitespace-only name: trim empties it, 'required' must reject it
+        $blank = new BizRule(null);
+        $blank->name = '   ';
+        $blank->className = BizRuleTestDenyRule::class;
+
+        $this->assertFalse($blank->save());
+        $this->assertTrue($blank->hasErrors('name'));
+    }
 }

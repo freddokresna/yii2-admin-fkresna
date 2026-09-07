@@ -53,6 +53,10 @@ class Menu extends \yii\db\ActiveRecord
     {
         return [
             [['name'], 'required'],
+            // menu.name is varchar(128) in the DB schema; the menu form only
+            // enforces the limit client-side (maxlength). SQLite does not
+            // enforce VARCHAR length, so the limit has to be validated here.
+            [['name'], 'string', 'max' => 128],
             [['parent_name'], 'in',
                 'range' => static::find()->select(['name'])->column(),
                 'message' => 'Menu "{value}" not found.'],

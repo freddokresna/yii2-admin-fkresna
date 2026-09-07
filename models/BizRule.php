@@ -60,7 +60,11 @@ class BizRule extends \yii\base\Model
     public function rules()
     {
         return [
+            [['name'], 'trim'],
             [['name', 'className'], 'required'],
+            // auth_rule.name is varchar(64) in the DB schema; SQLite does not
+            // enforce VARCHAR length, so the limit has to be validated here.
+            [['name'], 'string', 'max' => 64],
             [['className'], 'string'],
             [['className'], 'classExists'],
             [['name'], 'checkUniqueName', 'when' => function () {
