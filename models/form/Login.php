@@ -11,6 +11,16 @@ use mdm\admin\models\User;
  */
 class Login extends Model
 {
+    /**
+     * Fixed bcrypt hash (cost 13, same as the default yii\base\Security
+     * passwordHashCost) of a random non-secret passphrase. When the submitted
+     * username matches no account the login must still run one bcrypt verify
+     * against this dummy hash, otherwise the request short-circuits and the
+     * response time reveals whether the account exists (user-enumeration via
+     * timing oracle, audit QA wave-20 F20-3).
+     */
+    const DUMMY_PASSWORD_HASH = '$2y$13$3fBqUKXXdTG52aE9qQyUxufmye97JdvhqtnS4luu9lVrMQkc5tvoK';
+
     public $username;
     public $password;
     public $rememberMe = true;
@@ -43,7 +53,13 @@ class Login extends Model
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
-            if (!$user || !$user->validatePassword($this->password)) {
+            if ($user === null) {
+                // F20-3: account not found — still spend one bcrypt verify on a
+                // fixed dummy hash so the request duration is indistinguishable
+                // from the wrong-password path (no timing-based enumeration).
+                Yii::$app->security->validatePassword($this->password, static::DUMMY_PASSWORD_HASH);
+                $this->addError($attribute, 'Incorrect username or password.');
+            } elseif (!$user->validatePassword($this->password)) {
                 $this->addError($attribute, 'Incorrect username or password.');
             }
         }

@@ -22,6 +22,7 @@ $animateIcon = ' <i class="bi bi-arrow-repeat spinner-icon" style="display:none;
 
 ?>
 <h1><?= Html::encode($this->title); ?></h1>
+<div id="route-alert" class="alert alert-danger" role="alert" style="display:none;"></div>
 <div class="row">
     <div class="col-12">
         <div class="input-group mb-3">

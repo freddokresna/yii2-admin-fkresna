@@ -23,6 +23,15 @@ class Route extends \mdm\admin\BaseObject
     const PREFIX_ADVANCED = '@';
     const PREFIX_BASIC = '/';
 
+    /**
+     * Route names that were rejected by addNew() because the resulting
+     * permission name (auth_item.name is varchar(64) in the DB schema) is
+     * longer than 64 characters. Consumed by RouteController to surface a
+     * visible UI error instead of failing silently.
+     * @var string[]
+     */
+    public $invalidRoutes = [];
+
     private $_routePrefix;
 
     /**
@@ -41,11 +50,25 @@ class Route extends \mdm\admin\BaseObject
                 if (!is_string($route) || trim($route) === '') {
                     continue;
                 }
+                $route = trim($route);
+                // F20-2: auth_item.name is varchar(64) — MySQL silently rejects
+                // longer names (caught exception, nothing persisted) while
+                // SQLite stores them happily (no VARCHAR enforcement), so the
+                // same input behaves differently per server. Reject names over
+                // 64 characters up-front (same rule family as F14-1) and
+                // collect them for a visible UI error instead of a silent fail.
+                $permissionName = $this->getPermissionName($route);
                 $r = explode('&', $route);
-                $item = $manager->createPermission($this->getPermissionName($route));
+                $action = count($r) > 1 ? '/' . trim((string)$r[0], '/') : null;
+                if (mb_strlen($permissionName, '8bit') > 64 || ($action !== null && mb_strlen($action, '8bit') > 64)) {
+                    $this->invalidRoutes[] = $route;
+                    Yii::warning('Route "' . $route . '" not added: permission name longer than 64 characters.', __METHOD__);
+                    continue;
+                }
+                $item = $manager->createPermission($permissionName);
                 if (count($r) > 1) {
-                    $action = '/' . trim((string)$r[0], '/');
-                    if (($itemAction = $manager->getPermission($action)) === null) {
+                    $itemAction = $manager->getPermission($action);
+                    if ($itemAction === null) {
                         $itemAction = $manager->createPermission($action);
                         $manager->add($itemAction);
                     }

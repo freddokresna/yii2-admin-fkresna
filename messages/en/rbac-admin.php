@@ -93,4 +93,6 @@ return [
     '{attribute} "{value}" has already been taken.' => '{attribute} "{value}" has already been taken.',
     'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.' => 'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.',
     'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.' => 'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.',
+    'You can not delete your own account.' => 'You can not delete your own account.',
+    'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" was not added: the route name is longer than 64 characters.',
 ];

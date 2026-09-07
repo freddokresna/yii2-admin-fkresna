@@ -85,4 +85,6 @@ return [
     '{attribute} "{value}" has already been taken.' => '{attribute} "{value}" sudah digunakan.',
     'Rule "{rule}" is still used by {count} item(s). It cannot be deleted.' => 'Rule "{rule}" masih digunakan oleh {count} item dan tidak dapat dihapus.',
     'Menu "{menu}" still has {count} submenu(s). Delete the submenus first.' => 'Menu "{menu}" masih memiliki {count} submenu. Hapus submenu-nya terlebih dahulu.',
+    'You can not delete your own account.' => 'Anda tidak dapat menghapus akun Anda sendiri.',
+    'Route "{route}" was not added: the route name is longer than 64 characters.' => 'Route "{route}" tidak ditambahkan: nama route lebih dari 64 karakter.',
 ];

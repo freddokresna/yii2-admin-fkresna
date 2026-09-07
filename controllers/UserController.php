@@ -2,6 +2,7 @@
 
 namespace mdm\admin\controllers;
 
+use mdm\admin\components\Configs;
 use mdm\admin\components\UserStatus;
 use mdm\admin\models\form\ChangePassword;
 use mdm\admin\models\form\Login;
@@ -109,7 +110,31 @@ class UserController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+
+        // F20-1: never delete the account that is currently logged in — an
+        // operator could otherwise lock themselves (or the whole admin) out.
+        $identity = Yii::$app->getUser()->getIdentity();
+        if ($identity !== null && (string) $identity->getId() === (string) $model->id) {
+            Yii::$app->getSession()->setFlash('error', Yii::t('rbac-admin', 'You can not delete your own account.'));
+            return $this->redirect(['index']);
+        }
+
+        // F20-1: revoke ALL auth assignments BEFORE deleting the user. The
+        // authManager may live on a different DB than the user table (split-DB
+        // setup), so there is no cross-DB FK/ON DELETE CASCADE to clean up.
+        // Deleting first would leave orphan auth_assignment rows behind that
+        // silently grant the old permissions again as soon as the primary key
+        // is reused by a new user (privilege leak). Revoking first keeps the
+        // auth tables clean even if the user delete itself later fails.
+        // revokeAll() (ManagerInterface) removes every assignment of the user
+        // in one operation — roles, permissions and direct route assignments.
+        $auth = Configs::authManager();
+        if ($auth !== null) {
+            $auth->revokeAll($model->id);
+        }
+
+        $model->delete();
 
         return $this->redirect(['index']);
     }
@@ -171,11 +196,27 @@ class UserController extends Controller
     {
         $model = new PasswordResetRequest();
         if ($model->load(Yii::$app->getRequest()->post()) && $model->validate()) {
-            // Anti user-enumeration: hasil kirim email TIDAK dibedakan di UI —
-            // selalu flash sukses generik. Kegagalan (email tak terdaftar /
-            // mailer error) hanya dicatat di log.
-            if (!$model->sendEmail()) {
-                Yii::info('Password reset request tanpa email terkirim: ' . $model->email, 'auth');
+            // F20-4: throttle per IP & per email (cache counter + jeda).
+            // Setiap request memakan satu slot dari kedua counter; setelah
+            // batas terlampaui, request TIDAK mengirim email apa pun, ditunda
+            // (jeda) sejenak, lalu tetap menjawab dengan pesan sukses seragam —
+            // pemanggil tak bisa membedakan akun terdaftar/nonaktif/tak ada,
+            // dan enumerasi massal via kanal waktu SMTP dibatasi lajunya
+            // (lihat catatan timing-channel di PasswordResetRequest::consumeAttempt()).
+            $ip = Yii::$app->getRequest()->getUserIP();
+            if ($model->consumeAttempt($ip)) {
+                // Anti user-enumeration: hasil kirim email TIDAK dibedakan di UI —
+                // selalu flash sukses generik. Kegagalan (email tak terdaftar /
+                // akun nonaktif / mailer error) hanya dicatat di log.
+                if (!$model->sendEmail()) {
+                    Yii::info('Password reset request tanpa email terkirim: ' . $model->email, 'auth');
+                }
+            } else {
+                Yii::warning('Password reset request diblokir oleh rate limit: ' . $model->email . ' dari IP ' . $ip, 'auth');
+                $delay = PasswordResetRequest::throttleDelay();
+                if ($delay > 0) {
+                    sleep($delay);
+                }
             }
             Yii::$app->getSession()->setFlash('success', 'Jika email terdaftar, tautan reset password telah dikirim.');
 

@@ -51,7 +51,16 @@ class RouteController extends Controller
         $routes = preg_split('/\s*,\s*/', trim((string)$routes), -1, PREG_SPLIT_NO_EMPTY);
         $model = new Route();
         $model->addNew($routes);
-        return $model->getRoutes();
+        $result = $model->getRoutes();
+        // F20-2: names rejected by addNew() (>64 chars) must be visible in the
+        // UI — return them alongside the route lists; _script.js renders them
+        // in the alert box instead of letting the add fail silently.
+        if ($model->invalidRoutes) {
+            $result['errors'] = array_map(static function ($route) {
+                return Yii::t('rbac-admin', 'Route "{route}" was not added: the route name is longer than 64 characters.', ['route' => $route]);
+            }, $model->invalidRoutes);
+        }
+        return $result;
     }
 
     /**
@@ -65,7 +74,13 @@ class RouteController extends Controller
         $model = new Route();
         $model->addNew($routes);
         Yii::$app->getResponse()->format = 'json';
-        return $model->getRoutes();
+        $result = $model->getRoutes();
+        if ($model->invalidRoutes) {
+            $result['errors'] = array_map(static function ($route) {
+                return Yii::t('rbac-admin', 'Route "{route}" was not added: the route name is longer than 64 characters.', ['route' => $route]);
+            }, $model->invalidRoutes);
+        }
+        return $result;
     }
 
     /**
