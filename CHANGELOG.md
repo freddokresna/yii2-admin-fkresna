@@ -20,6 +20,24 @@
 
 ---
 
+## [Unreleased] - 2026-09-08 (Cycle 2)
+
+### Perbaikan Keamanan (Critical Fixes)
+
+Audit QA menemukan 23 bug, dengan 5 critical fix pada commit `931ea93`:
+
+- **AccessControl applied to all controllers** — Mengaktifkan `AccessControl` filter pada semua controller (bukan hanya yang di-allow secara hardcode) untuk mencegah unauthorized access
+- **Null-check authManager** — Menambahkan null-check pada akses `authManager` komponen untuk mencegah `NullReferenceException` saat konfigurasi RBAC tidak terpasang
+- **CSRF filter** — Mengaktifkan CSRF validation filter untuk mencegah Cross-Site Request Forgery pada semua POST request
+- **Route validation** — Menambahkan validasi route sebelum dieksekusi untuk mencegah route injection dan CWE-937
+- **XSS prevention** — Menambahkan escaping pada semua output user-supplied data untuk mencegah Cross-Site Scripting (CWE-79)
+
+### Perubahan
+
+- Commit: `931ea93 fix(qa/security): resolve critical auth bypass and null pointer bugs`
+
+---
+
 Yii2 Admin Change Log
 ==========================
 
