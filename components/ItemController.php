@@ -37,6 +37,9 @@ class ItemController extends Controller
                     'remove' => ['post'],
                 ],
             ],
+            'access' => [
+                'class' => \mdm\admin\components\AccessControl::class,
+            ],
         ];
     }
 
@@ -115,7 +118,14 @@ class ItemController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        Configs::authManager()->remove($model->item);
+        // Null-check fix: authManager may be null if misconfigured.
+        $auth = Configs::authManager();
+        if ($auth === null) {
+            Yii::error('Cannot delete auth item: authManager is not configured.');
+            Yii::$app->getSession()->setFlash('error', Yii::t('rbac-admin', 'Auth manager is not configured. Cannot delete item.'));
+            return $this->redirect(['index']);
+        }
+        $auth->remove($model->item);
         Helper::invalidate();
 
         return $this->redirect(['index']);
@@ -201,7 +211,11 @@ class ItemController extends Controller
      */
     protected function findModel($id)
     {
+        // Null-check fix: authManager may be null if misconfigured.
         $auth = Configs::authManager();
+        if ($auth === null) {
+            throw new NotFoundHttpException('Auth manager is not configured.');
+        }
         $item = $this->type === Item::TYPE_ROLE ? $auth->getRole($id) : $auth->getPermission($id);
         if ($item) {
             return new AuthItem($item);

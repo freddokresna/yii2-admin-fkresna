@@ -32,6 +32,9 @@ class RuleController extends Controller
                     'delete' => ['post'],
                 ],
             ],
+            'access' => [
+                'class' => \mdm\admin\components\AccessControl::class,
+            ],
         ];
     }
 
@@ -122,7 +125,14 @@ class RuleController extends Controller
             return $this->redirect(['index']);
         }
 
-        Configs::authManager()->remove($model->item);
+        $auth = Configs::authManager();
+        // Null-check fix: if authManager is null, log and return with error.
+        if ($auth === null) {
+            Yii::error('Cannot delete rule: authManager is not configured.');
+            Yii::$app->getSession()->setFlash('error', Yii::t('rbac-admin', 'Auth manager is not configured. Cannot delete rule.'));
+            return $this->redirect(['index']);
+        }
+        $auth->remove($model->item);
         Helper::invalidate();
 
         return $this->redirect(['index']);
@@ -137,7 +147,12 @@ class RuleController extends Controller
      */
     protected function findModel($id)
     {
-        $item = Configs::authManager()->getRule($id);
+        $auth = Configs::authManager();
+        // Null-check fix: if authManager is null, throw 404 instead of crash.
+        if ($auth === null) {
+            throw new NotFoundHttpException('Auth manager is not configured.');
+        }
+        $item = $auth->getRule($id);
         if ($item) {
             return new BizRule($item);
         } else {

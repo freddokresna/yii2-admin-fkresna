@@ -31,6 +31,9 @@ class MenuController extends Controller
                     'delete' => ['post'],
                 ],
             ],
+            'access' => [
+                'class' => \mdm\admin\components\AccessControl::class,
+            ],
         ];
     }
 

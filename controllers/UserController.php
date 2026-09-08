@@ -42,6 +42,9 @@ class UserController extends Controller
                     'activate' => ['post'],
                 ],
             ],
+            'access' => [
+                'class' => \mdm\admin\components\AccessControl::class,
+            ],
         ];
     }
 

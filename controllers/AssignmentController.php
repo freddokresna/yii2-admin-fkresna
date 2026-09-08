@@ -49,6 +49,9 @@ class AssignmentController extends Controller
                     'revoke' => ['post'],
                 ],
             ],
+            'access' => [
+                'class' => \mdm\admin\components\AccessControl::class,
+            ],
         ];
     }
 

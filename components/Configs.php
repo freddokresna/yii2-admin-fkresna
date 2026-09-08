@@ -218,11 +218,28 @@ class Configs extends \mdm\admin\BaseObject
     }
 
     /**
-     * @return ManagerInterface
+     * @return ManagerInterface|null
+     * 
+     * Null-check fix: If authManager component is not configured or not
+     * a valid ManagerInterface, this returns null instead of crashing.
+     * Callers must check for null before invoking manager methods.
      */
     public static function authManager()
     {
-        return static::instance()->authManager;
+        $instance = static::instance();
+        // Null-check: instance itself could be null in edge cases
+        if ($instance === null) {
+            return null;
+        }
+        // Null-check: authManager property could be null if misconfigured
+        if ($instance->authManager === null) {
+            return null;
+        }
+        // Type-check: ensure it's a valid ManagerInterface
+        if (!($instance->authManager instanceof ManagerInterface)) {
+            return null;
+        }
+        return $instance->authManager;
     }
     /**
      * @return integer
