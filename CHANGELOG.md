@@ -1,3 +1,25 @@
+## [Unreleased] - 2026-09-08 (Cycle 1)
+
+### Perbaikan Bug (QA)
+
+- Menghilangkan error suppression operator (`@`) di seluruh codebase untuk error handling yang lebih baik
+- Penambahan mounted check pada setState dalam async context untuk mencegah crash saat widget di-dispose
+- Peningkatan validasi input dan penanganan error di seluruh layar dan widget
+- Perbaikan potensi null pointer exceptions dan race conditions
+
+### Perbaikan UI/UX (Designer)
+
+- Normalisasi ukuran font ke nilai standar Material Design (12, 14, 16, 18, 20, 24)
+- Penghapusan hardcoded hex color — migrasi ke theme colors agar konsisten dan mendukung dark mode
+- Perbaikan inline fixed-size styles — beralih ke responsive layouts
+- Peningkatan konsistensi spacing dan typography di seluruh aplikasi
+
+### Perubahan
+
+- Commit: `fix(ui/qa): resolve UI/UX and QA issues from Phase 1-2 audit (cycle 1)`
+
+---
+
 Yii2 Admin Change Log
 ==========================
 

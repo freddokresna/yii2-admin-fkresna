@@ -189,3 +189,17 @@ koneksi dapat dioverride lewat `tests/codeception/config/db-local.php`
 ## Lisensi
 
 BSD-3-Clause. Lihat [LICENSE](LICENSE).
+
+
+---
+
+## Quality Improvement
+
+Proyek ini menjalani **Quality Improvement Loop** otomatis setiap cycle:
+
+1. **Phase 1 — UI/UX Designer**: Audit layout, typography, colors, spacing, accessibility
+2. **Phase 2 — QA Agent**: Audit crash potential, null pointer, race conditions, logic errors
+3. **Phase 3 — Engineer**: Fix semua issue di code + static analysis + commit ke git
+4. **Phase 4 — Documentation**: Update CHANGELOG.md dan dokumentasi fitur
+
+Cycle terakhir: **Cycle 1** — 2026-09-08
