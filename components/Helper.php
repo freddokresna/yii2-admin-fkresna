@@ -273,7 +273,7 @@ class Helper
         // whitespace / control / format / line-or-paragraph-separator run to
         // one space and trim. Neutralizes CRLF, lone CR/LF, ANSI escapes and
         // U+2028/U+2029.
-        $clean = @preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $s);
+        $clean = preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $s);
         if ($clean !== null) {
             return trim($clean);
         }
@@ -283,9 +283,9 @@ class Helper
         // into the log line (CWE-117 log injection, audit QA wave-23 F23-1).
         // Re-encode with iconv //IGNORE (drops the malformed \xFF bytes) and
         // run the same collapse — clean for every realistic payload.
-        $utf8 = @iconv('UTF-8', 'UTF-8//IGNORE', $s);
+        $utf8 = iconv('UTF-8', 'UTF-8//IGNORE', $s);
         if ($utf8 !== false) {
-            $clean = @preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $utf8);
+            $clean = preg_replace('/[\s\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/u', ' ', $utf8);
             if ($clean !== null) {
                 return trim($clean);
             }
